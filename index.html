@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusDeck — Student Productivity Tools</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="./index.html" class="logo">Focus<span class="logo-accent">Deck</span></a>
+      <div class="nav-tabs">
+        <button class="tab active" data-tool="gpa">GPA Calculator</button>
+        <button class="tab" data-tool="planner">Study Planner</button>
+        <button class="tab" data-tool="deadlines">Deadlines</button>
+      </div>
+      <button class="mobile-tab-btn" aria-label="Tools">
+        <span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-tabs">
+    <button class="tab active" data-tool="gpa">GPA Calculator</button>
+    <button class="tab" data-tool="planner">Study Planner</button>
+    <button class="tab" data-tool="deadlines">Deadlines</button>
+  </div>
+
+  <!-- GPA CALCULATOR -->
+  <main id="gpa" class="tool-panel active">
+    <div class="tool-inner">
+      <div class="tool-header">
+        <div>
+          <h1>GPA Calculator</h1>
+          <p>Add your courses and grades. Your GPA updates in real time.</p>
+        </div>
+        <div class="gpa-display">
+          <div class="gpa-number" id="gpaResult">0.00</div>
+          <div class="gpa-label">Cumulative GPA</div>
+          <div class="gpa-bar"><div class="gpa-fill" id="gpaFill" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="courses-container">
+        <div class="courses-header">
+          <span class="col-name">Course Name</span>
+          <span class="col-credits">Credits</span>
+          <span class="col-grade">Grade</span>
+          <span class="col-remove"></span>
+        </div>
+        <div id="coursesList" class="courses-list"></div>
+        <button id="addCourse" class="add-course-btn">Add course</button>
+      </div>
+      <div class="gpa-scale">
+        <h3>Grade Scale Reference</h3>
+        <div class="scale-grid">
+          <div><span class="scale-grade">A</span><span class="scale-val">4.0</span></div>
+          <div><span class="scale-grade">A-</span><span class="scale-val">3.7</span></div>
+          <div><span class="scale-grade">B+</span><span class="scale-val">3.3</span></div>
+          <div><span class="scale-grade">B</span><span class="scale-val">3.0</span></div>
+          <div><span class="scale-grade">B-</span><span class="scale-val">2.7</span></div>
+          <div><span class="scale-grade">C+</span><span class="scale-val">2.3</span></div>
+          <div><span class="scale-grade">C</span><span class="scale-val">2.0</span></div>
+          <div><span class="scale-grade">D</span><span class="scale-val">1.0</span></div>
+          <div><span class="scale-grade">F</span><span class="scale-val">0.0</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- STUDY PLANNER -->
+  <main id="planner" class="tool-panel">
+    <div class="tool-inner">
+      <div class="tool-header">
+        <div>
+          <h1>Study Planner</h1>
+          <p>Plan your weekly study sessions. Organize by subject and time.</p>
+        </div>
+        <div class="planner-stats">
+          <div class="pstat"><span class="pstat-num" id="totalHours">0</span><span class="pstat-label">Hours this week</span></div>
+          <div class="pstat"><span class="pstat-num" id="totalSessions">0</span><span class="pstat-label">Sessions</span></div>
+        </div>
+      </div>
+      <div class="planner-form">
+        <div class="pf-row">
+          <div class="pf-field"><label for="sessionSubject">Subject</label><input type="text" id="sessionSubject" placeholder="Calculus II" maxlength="30"></div>
+          <div class="pf-field"><label for="sessionDay">Day</label>
+            <select id="sessionDay">
+              <option value="Mon">Monday</option><option value="Tue">Tuesday</option><option value="Wed">Wednesday</option>
+              <option value="Thu">Thursday</option><option value="Fri">Friday</option><option value="Sat">Saturday</option><option value="Sun">Sunday</option>
+            </select>
+          </div>
+          <div class="pf-field"><label for="sessionTime">Time</label><input type="time" id="sessionTime" value="09:00"></div>
+          <div class="pf-field"><label for="sessionDuration">Duration (hrs)</label><input type="number" id="sessionDuration" min="0.5" max="8" step="0.5" value="1.5"></div>
+          <button id="addSession" class="add-session-btn">Add</button>
+        </div>
+      </div>
+      <div class="week-grid" id="weekGrid">
+        <div class="day-col" data-day="Mon"><div class="day-label">Mon</div><div class="day-slots"></div></div>
+        <div class="day-col" data-day="Tue"><div class="day-label">Tue</div><div class="day-slots"></div></div>
+        <div class="day-col" data-day="Wed"><div class="day-label">Wed</div><div class="day-slots"></div></div>
+        <div class="day-col" data-day="Thu"><div class="day-label">Thu</div><div class="day-slots"></div></div>
+        <div class="day-col" data-day="Fri"><div class="day-label">Fri</div><div class="day-slots"></div></div>
+        <div class="day-col" data-day="Sat"><div class="day-label">Sat</div><div class="day-slots"></div></div>
+        <div class="day-col" data-day="Sun"><div class="day-label">Sun</div><div class="day-slots"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- DEADLINE TRACKER -->
+  <main id="deadlines" class="tool-panel">
+    <div class="tool-inner">
+      <div class="tool-header">
+        <div>
+          <h1>Deadline Tracker</h1>
+          <p>Keep track of assignments, exams, and projects. Never miss a due date.</p>
+        </div>
+        <div class="deadline-overview">
+          <div class="do-item"><span class="do-num" id="dueThisWeek">0</span><span class="do-label">Due this week</span></div>
+          <div class="do-item"><span class="do-num" id="overdue">0</span><span class="do-label">Overdue</span></div>
+        </div>
+      </div>
+      <div class="deadline-form">
+        <div class="df-row">
+          <div class="df-field"><label for="dlTitle">Assignment</label><input type="text" id="dlTitle" placeholder="Physics Lab Report" maxlength="50"></div>
+          <div class="df-field"><label for="dlCourse">Course</label><input type="text" id="dlCourse" placeholder="PHY 201" maxlength="20"></div>
+          <div class="df-field"><label for="dlDate">Due date</label><input type="date" id="dlDate"></div>
+          <div class="df-field"><label for="dlPriority">Priority</label>
+            <select id="dlPriority"><option value="normal">Normal</option><option value="high">High</option><option value="low">Low</option></select>
+          </div>
+          <button id="addDeadline" class="add-deadline-btn">Add</button>
+        </div>
+      </div>
+      <div id="deadlineList" class="deadline-list"></div>
+      <div id="emptyDeadlines" class="empty-state"><p>No deadlines yet. Add your first assignment above.</p></div>
+    </div>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
