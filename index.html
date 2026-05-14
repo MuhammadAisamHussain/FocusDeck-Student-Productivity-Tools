@@ -1,142 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FocusDeck — Student Productivity Tools</title>
-  <link rel="stylesheet" href="./style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALS eCargoWorld — Global Freight Forwarding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
-  <nav class="nav">
-    <div class="nav-inner">
-      <a href="./index.html" class="logo">Focus<span class="logo-accent">Deck</span></a>
-      <div class="nav-tabs">
-        <button class="tab active" data-tool="gpa">GPA Calculator</button>
-        <button class="tab" data-tool="planner">Study Planner</button>
-        <button class="tab" data-tool="deadlines">Deadlines</button>
-      </div>
-      <button class="mobile-tab-btn" aria-label="Tools">
-        <span></span><span></span>
-      </button>
-    </div>
-  </nav>
+    <!-- ============ NAVBAR ============ -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logos">
+                <img src="assets/ecw-logo.png" alt="eCargoWorld" class="logo logo-ecw">
+                <span class="logo-divider"></span>
+                <img src="assets/als-logo.png" alt="ALS" class="logo logo-als">
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="app.html" class="nav-cta">Dashboard</a></li>
+            </ul>
+            <button class="mobile-toggle" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
 
-  <div class="mobile-tabs">
-    <button class="tab active" data-tool="gpa">GPA Calculator</button>
-    <button class="tab" data-tool="planner">Study Planner</button>
-    <button class="tab" data-tool="deadlines">Deadlines</button>
-  </div>
+    <!-- ============ HERO SECTION ============ -->
+    <section class="hero" id="home">
+        <div class="hero-bg-pattern"></div>
+        <div class="hero-swoosh"></div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <span class="hero-tag">Agile & Efficient Global Logistics</span>
+                <h1 class="hero-headline">
+                    Moving Your World<br>
+                    <span class="text-amber">Safe • Efficient • Quick</span>
+                </h1>
+                <p class="hero-subtext">
+                    Your trusted partner in air and sea freight forwarding. 
+                    We connect Pakistan to the world with precision, speed, and reliability.
+                </p>
+                <div class="hero-ctas">
+                    <a href="#contact" class="btn btn-amber btn-lg">Get a Free Quote</a>
+                    <a href="#services" class="btn btn-outline btn-lg">Our Services</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">500+</span>
+                        <span class="stat-label">Shipments Monthly</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">50+</span>
+                        <span class="stat-label">Global Destinations</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">99%</span>
+                        <span class="stat-label">On-Time Delivery</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="globe-container">
+                    <div class="globe-dots"></div>
+                    <div class="plane-trail"></div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-arc"></div>
+    </section>
 
-  <!-- GPA CALCULATOR -->
-  <main id="gpa" class="tool-panel active">
-    <div class="tool-inner">
-      <div class="tool-header">
-        <div>
-          <h1>GPA Calculator</h1>
-          <p>Add your courses and grades. Your GPA updates in real time.</p>
+    <!-- ============ SERVICES SECTION ============ -->
+    <section class="services" id="services">
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-tag">What We Do</span>
+                <h2>Comprehensive Logistics <span class="text-amber">Solutions</span></h2>
+                <p>End-to-end freight forwarding services tailored to your business needs</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">✈️</div>
+                    <h3>Air Freight</h3>
+                    <p>Fast and reliable air cargo solutions with major airlines. Door-to-door delivery with real-time tracking.</p>
+                    <ul class="service-features">
+                        <li>Express & Economy options</li>
+                        <li>All major airlines</li>
+                        <li>Real-time AWB tracking</li>
+                    </ul>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🚢</div>
+                    <h3>Sea Freight</h3>
+                    <p>Cost-effective ocean freight for bulk shipments. FCL and LCL options to all major ports worldwide.</p>
+                    <ul class="service-features">
+                        <li>FCL & LCL services</li>
+                        <li>Global port coverage</li>
+                        <li>Competitive rates</li>
+                    </ul>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">📋</div>
+                    <h3>Customs Clearance</h3>
+                    <p>Hassle-free customs processing. Our experts handle all documentation and compliance requirements.</p>
+                    <ul class="service-features">
+                        <li>Import & Export clearance</li>
+                        <li>Documentation handling</li>
+                        <li>Regulatory compliance</li>
+                    </ul>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">🏭</div>
+                    <h3>Warehousing</h3>
+                    <p>Secure storage and distribution facilities. Inventory management with modern tracking systems.</p>
+                    <ul class="service-features">
+                        <li>Climate-controlled storage</li>
+                        <li>Inventory tracking</li>
+                        <li>Pick & pack services</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="gpa-display">
-          <div class="gpa-number" id="gpaResult">0.00</div>
-          <div class="gpa-label">Cumulative GPA</div>
-          <div class="gpa-bar"><div class="gpa-fill" id="gpaFill" style="width:0%"></div></div>
-        </div>
-      </div>
-      <div class="courses-container">
-        <div class="courses-header">
-          <span class="col-name">Course Name</span>
-          <span class="col-credits">Credits</span>
-          <span class="col-grade">Grade</span>
-          <span class="col-remove"></span>
-        </div>
-        <div id="coursesList" class="courses-list"></div>
-        <button id="addCourse" class="add-course-btn">Add course</button>
-      </div>
-      <div class="gpa-scale">
-        <h3>Grade Scale Reference</h3>
-        <div class="scale-grid">
-          <div><span class="scale-grade">A</span><span class="scale-val">4.0</span></div>
-          <div><span class="scale-grade">A-</span><span class="scale-val">3.7</span></div>
-          <div><span class="scale-grade">B+</span><span class="scale-val">3.3</span></div>
-          <div><span class="scale-grade">B</span><span class="scale-val">3.0</span></div>
-          <div><span class="scale-grade">B-</span><span class="scale-val">2.7</span></div>
-          <div><span class="scale-grade">C+</span><span class="scale-val">2.3</span></div>
-          <div><span class="scale-grade">C</span><span class="scale-val">2.0</span></div>
-          <div><span class="scale-grade">D</span><span class="scale-val">1.0</span></div>
-          <div><span class="scale-grade">F</span><span class="scale-val">0.0</span></div>
-        </div>
-      </div>
-    </div>
-  </main>
+    </section>
 
-  <!-- STUDY PLANNER -->
-  <main id="planner" class="tool-panel">
-    <div class="tool-inner">
-      <div class="tool-header">
-        <div>
-          <h1>Study Planner</h1>
-          <p>Plan your weekly study sessions. Organize by subject and time.</p>
+    <!-- ============ WHY CHOOSE US ============ -->
+    <section class="why-us" id="about">
+        <div class="why-us-bg"></div>
+        <div class="section-container">
+            <div class="section-header light">
+                <span class="section-tag">Why Choose Us</span>
+                <h2>Trusted by Businesses <span class="text-amber">Across Pakistan</span></h2>
+            </div>
+            <div class="why-grid">
+                <div class="why-card">
+                    <div class="why-icon-wrap">
+                        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <h3>Safe Handling</h3>
+                    <p>Zero-damage guarantee with proper packaging and handling protocols. Your cargo is insured and secure.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon-wrap">
+                        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <h3>On-Time Delivery</h3>
+                    <p>99% on-time delivery rate. We understand that every minute counts in your supply chain.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon-wrap">
+                        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2">
+                            <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <h3>Competitive Rates</h3>
+                    <p>Best market rates through strong airline and shipping line partnerships. No hidden charges.</p>
+                </div>
+                <div class="why-card">
+                    <div class="why-icon-wrap">
+                        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="3" y1="9" x2="21" y2="9"/>
+                            <line x1="9" y1="21" x2="9" y2="9"/>
+                        </svg>
+                    </div>
+                    <h3>Tech-Driven</h3>
+                    <p>Real-time tracking, automated updates, and digital documentation. Stay informed at every step.</p>
+                </div>
+            </div>
         </div>
-        <div class="planner-stats">
-          <div class="pstat"><span class="pstat-num" id="totalHours">0</span><span class="pstat-label">Hours this week</span></div>
-          <div class="pstat"><span class="pstat-num" id="totalSessions">0</span><span class="pstat-label">Sessions</span></div>
-        </div>
-      </div>
-      <div class="planner-form">
-        <div class="pf-row">
-          <div class="pf-field"><label for="sessionSubject">Subject</label><input type="text" id="sessionSubject" placeholder="Calculus II" maxlength="30"></div>
-          <div class="pf-field"><label for="sessionDay">Day</label>
-            <select id="sessionDay">
-              <option value="Mon">Monday</option><option value="Tue">Tuesday</option><option value="Wed">Wednesday</option>
-              <option value="Thu">Thursday</option><option value="Fri">Friday</option><option value="Sat">Saturday</option><option value="Sun">Sunday</option>
-            </select>
-          </div>
-          <div class="pf-field"><label for="sessionTime">Time</label><input type="time" id="sessionTime" value="09:00"></div>
-          <div class="pf-field"><label for="sessionDuration">Duration (hrs)</label><input type="number" id="sessionDuration" min="0.5" max="8" step="0.5" value="1.5"></div>
-          <button id="addSession" class="add-session-btn">Add</button>
-        </div>
-      </div>
-      <div class="week-grid" id="weekGrid">
-        <div class="day-col" data-day="Mon"><div class="day-label">Mon</div><div class="day-slots"></div></div>
-        <div class="day-col" data-day="Tue"><div class="day-label">Tue</div><div class="day-slots"></div></div>
-        <div class="day-col" data-day="Wed"><div class="day-label">Wed</div><div class="day-slots"></div></div>
-        <div class="day-col" data-day="Thu"><div class="day-label">Thu</div><div class="day-slots"></div></div>
-        <div class="day-col" data-day="Fri"><div class="day-label">Fri</div><div class="day-slots"></div></div>
-        <div class="day-col" data-day="Sat"><div class="day-label">Sat</div><div class="day-slots"></div></div>
-        <div class="day-col" data-day="Sun"><div class="day-label">Sun</div><div class="day-slots"></div></div>
-      </div>
-    </div>
-  </main>
+    </section>
 
-  <!-- DEADLINE TRACKER -->
-  <main id="deadlines" class="tool-panel">
-    <div class="tool-inner">
-      <div class="tool-header">
-        <div>
-          <h1>Deadline Tracker</h1>
-          <p>Keep track of assignments, exams, and projects. Never miss a due date.</p>
+    <!-- ============ CONTACT / QUOTE FORM ============ -->
+    <section class="contact" id="contact">
+        <div class="section-container">
+            <div class="contact-wrapper">
+                <div class="contact-info">
+                    <span class="section-tag">Get In Touch</span>
+                    <h2>Request a <span class="text-amber">Quote</span></h2>
+                    <p>Tell us about your shipment and we'll get back to you with the best rates within 24 hours.</p>
+                    <div class="contact-details">
+                        <div class="contact-item">
+                            <span class="contact-icon">📧</span>
+                            <div>
+                                <strong>Email</strong>
+                                <span>info@alsecargoworld.com</span>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📞</span>
+                            <div>
+                                <strong>Phone</strong>
+                                <span>+92 300 0000000</span>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📍</span>
+                            <div>
+                                <strong>Office</strong>
+                                <span>Lahore, Pakistan</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <form class="contact-form" id="quoteForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <input type="text" id="name" required placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" required placeholder="your@email.com">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="tel" id="phone" placeholder="+92 300 0000000">
+                        </div>
+                        <div class="form-group">
+                            <label for="service">Service Type</label>
+                            <select id="service">
+                                <option value="">Select service</option>
+                                <option value="air">Air Freight</option>
+                                <option value="sea">Sea Freight</option>
+                                <option value="customs">Customs Clearance</option>
+                                <option value="warehousing">Warehousing</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Shipment Details</label>
+                        <textarea id="message" rows="4" placeholder="Origin, destination, weight, cargo type..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-amber btn-full">Send Request →</button>
+                </form>
+            </div>
         </div>
-        <div class="deadline-overview">
-          <div class="do-item"><span class="do-num" id="dueThisWeek">0</span><span class="do-label">Due this week</span></div>
-          <div class="do-item"><span class="do-num" id="overdue">0</span><span class="do-label">Overdue</span></div>
-        </div>
-      </div>
-      <div class="deadline-form">
-        <div class="df-row">
-          <div class="df-field"><label for="dlTitle">Assignment</label><input type="text" id="dlTitle" placeholder="Physics Lab Report" maxlength="50"></div>
-          <div class="df-field"><label for="dlCourse">Course</label><input type="text" id="dlCourse" placeholder="PHY 201" maxlength="20"></div>
-          <div class="df-field"><label for="dlDate">Due date</label><input type="date" id="dlDate"></div>
-          <div class="df-field"><label for="dlPriority">Priority</label>
-            <select id="dlPriority"><option value="normal">Normal</option><option value="high">High</option><option value="low">Low</option></select>
-          </div>
-          <button id="addDeadline" class="add-deadline-btn">Add</button>
-        </div>
-      </div>
-      <div id="deadlineList" class="deadline-list"></div>
-      <div id="emptyDeadlines" class="empty-state"><p>No deadlines yet. Add your first assignment above.</p></div>
-    </div>
-  </main>
+    </section>
 
-  <script src="./script.js"></script>
+    <!-- ============ FOOTER ============ -->
+    <footer class="footer">
+        <div class="footer-swoosh"></div>
+        <div class="footer-container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="footer-logos">
+                        <img src="assets/ecw-logo.png" alt="eCargoWorld" class="footer-logo">
+                        <img src="assets/als-logo.png" alt="ALS" class="footer-logo">
+                    </div>
+                    <p>Safe • Efficient • Quick — Your trusted freight forwarding partner connecting Pakistan to the global market.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Services</h4>
+                    <ul>
+                        <li><a href="#services">Air Freight</a></li>
+                        <li><a href="#services">Sea Freight</a></li>
+                        <li><a href="#services">Customs Clearance</a></li>
+                        <li><a href="#services">Warehousing</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 ALS eCargoWorld. All rights reserved. | Agile & Efficient Logistics</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
 </body>
 </html>
