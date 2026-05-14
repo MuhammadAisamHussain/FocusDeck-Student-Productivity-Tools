@@ -2,12 +2,9 @@
 // ALS eCargoWorld — Admin Panel Controller
 // ============================================
 
-import { supabase } from './supabase.js';
-import { Store } from './store.js';
-
 class AdminPanel {
     constructor() {
-        this.store = new Store(supabase);
+        this.db = window.supabase;
         this.pendingUploads = new Map();
         this.init();
     }
@@ -43,15 +40,12 @@ class AdminPanel {
         document.querySelectorAll('.upload-trigger').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const card = btn.closest('.image-upload-card');
-                card?.querySelector('input[type="file"]')?.click();
+                btn.closest('.image-upload-card')?.querySelector('input[type="file"]')?.click();
             });
         });
 
         document.querySelectorAll('.image-upload-card').forEach(card => {
-            card.addEventListener('click', () => {
-                card.querySelector('input[type="file"]')?.click();
-            });
+            card.addEventListener('click', () => card.querySelector('input[type="file"]')?.click());
         });
 
         document.querySelectorAll('.remove-image').forEach(btn => {
@@ -63,8 +57,7 @@ class AdminPanel {
     }
 
     handleImageSelected(slot, file) {
-        const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
-        if (!allowedTypes.includes(file.type)) {
+        if (!['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.type)) {
             alert('Please upload a PNG, JPEG, WebP, or SVG file.');
             return;
         }
@@ -89,7 +82,6 @@ class AdminPanel {
 
     handleImageRemoved(slot) {
         this.pendingUploads.set(slot, null);
-
         const preview = document.getElementById(this.getPreviewId(slot));
         const placeholder = document.getElementById(this.getPlaceholderId(slot));
         if (preview) { preview.src = ''; preview.style.display = 'none'; }
@@ -125,17 +117,31 @@ class AdminPanel {
             for (const [slot, file] of this.pendingUploads.entries()) {
                 if (file === null) {
                     updates[`${slot}_url`] = '';
-                    try { await this.store.deleteImage(`${slot}`); } catch (e) { /* nothing to delete */ }
                 } else if (file instanceof File) {
                     const fileExt = file.name.split('.').pop();
                     const filePath = `${slot}.${fileExt}`;
-                    const publicUrl = await this.store.uploadImage(filePath, file);
+                    
+                    const { data, error } = await this.db.storage
+                        .from('assets')
+                        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+                    if (error) throw error;
+
+                    const { data: { publicUrl } } = this.db.storage
+                        .from('assets')
+                        .getPublicUrl(filePath);
+
                     updates[`${slot}_url`] = publicUrl;
                 }
             }
 
             if (Object.keys(updates).length > 0) {
-                await this.store.updateSettings(updates);
+                const { error } = await this.db
+                    .from('settings')
+                    .upsert({ id: 1, ...updates, updated_at: new Date().toISOString() });
+
+                if (error) throw error;
+
                 this.pendingUploads.clear();
                 this.showToast('Images saved successfully!');
             } else {
@@ -165,7 +171,11 @@ class AdminPanel {
                 usd_pkr_rate: parseFloat(document.getElementById('settingUsdPkr')?.value) || 278.50
             };
 
-            await this.store.updateSettings(settings);
+            const { error } = await this.db
+                .from('settings')
+                .upsert({ id: 1, ...settings, updated_at: new Date().toISOString() });
+
+            if (error) throw error;
             this.showToast('Settings saved successfully!');
         } catch (error) {
             console.error('Failed to save settings:', error);
@@ -178,7 +188,8 @@ class AdminPanel {
 
     async loadCurrentSettings() {
         try {
-            const settings = await this.store.getSettings();
+            const { data: settings, error } = await this.db.from('settings').select('*').single();
+            if (error || !settings) return;
 
             const fieldMap = {
                 settingCompanyName: 'company_name',
@@ -190,10 +201,9 @@ class AdminPanel {
 
             Object.entries(fieldMap).forEach(([elementId, settingKey]) => {
                 const el = document.getElementById(elementId);
-                if (el) el.value = settings[settingKey] || '';
+                if (el && settings[settingKey] !== undefined) el.value = settings[settingKey];
             });
 
-            // Load existing images
             const imageSlots = ['logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 'service_air', 'service_sea'];
             imageSlots.forEach(slot => {
                 const url = settings[`${slot}_url`];
@@ -214,24 +224,12 @@ class AdminPanel {
     showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.textContent = message;
-        toast.style.cssText = `
-            position: fixed; bottom: 30px; right: 30px;
-            background: ${type === 'error' ? '#ef4444' : '#22c55e'};
-            color: white; padding: 14px 24px; border-radius: 10px;
-            font-family: 'Inter', sans-serif; font-weight: 500; font-size: 0.9rem;
-            z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            animation: toastIn 0.3s ease-out;
-        `;
+        toast.style.cssText = `position:fixed;bottom:30px;right:30px;background:${type==='error'?'#ef4444':'#22c55e'};color:white;padding:14px 24px;border-radius:10px;font-family:'Inter',sans-serif;font-weight:500;font-size:0.9rem;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.4);animation:toastIn 0.3s ease-out;`;
         document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.style.animation = 'toastOut 0.3s ease-in';
-            setTimeout(() => toast.remove(), 300);
-        }, 3500);
+        setTimeout(() => { toast.style.animation = 'toastOut 0.3s ease-in'; setTimeout(() => toast.remove(), 300); }, 3500);
     }
 
-    capitalize(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
+    capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
 }
 
 document.addEventListener('DOMContentLoaded', () => new AdminPanel());
