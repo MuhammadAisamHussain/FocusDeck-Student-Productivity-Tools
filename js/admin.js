@@ -17,41 +17,47 @@ class AdminPanel {
     }
 
     bindNavigation() {
-        document.querySelectorAll('.admin-nav-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const section = item.dataset.section;
-                document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.admin-nav-item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                var section = item.dataset.section;
+                document.querySelectorAll('.admin-nav-item').forEach(function(n) { n.classList.remove('active'); });
                 item.classList.add('active');
-                document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-                document.getElementById('section' + section.charAt(0).toUpperCase() + section.slice(1))?.classList.add('active');
+                document.querySelectorAll('.admin-section').forEach(function(s) { s.classList.remove('active'); });
+                var sectionEl = document.getElementById('section' + section.charAt(0).toUpperCase() + section.slice(1));
+                if (sectionEl) sectionEl.classList.add('active');
             });
         });
     }
 
     bindImageUploads() {
-        document.querySelectorAll('input[type="file"]').forEach(input => {
-            input.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                const slot = input.dataset.slot;
-                if (file && slot) this.handleImageSelected(slot, file);
+        var self = this;
+        document.querySelectorAll('input[type="file"]').forEach(function(input) {
+            input.addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                var slot = input.dataset.slot;
+                if (file && slot) self.handleImageSelected(slot, file);
             });
         });
 
-        document.querySelectorAll('.upload-trigger').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.upload-trigger').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                btn.closest('.image-upload-card')?.querySelector('input[type="file"]')?.click();
+                var input = btn.closest('.image-upload-card')?.querySelector('input[type="file"]');
+                if (input) input.click();
             });
         });
 
-        document.querySelectorAll('.image-upload-card').forEach(card => {
-            card.addEventListener('click', () => card.querySelector('input[type="file"]')?.click());
+        document.querySelectorAll('.image-upload-card').forEach(function(card) {
+            card.addEventListener('click', function() {
+                var input = card.querySelector('input[type="file"]');
+                if (input) input.click();
+            });
         });
 
-        document.querySelectorAll('.remove-image').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.remove-image').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                this.handleImageRemoved(btn.dataset.slot);
+                self.handleImageRemoved(btn.dataset.slot);
             });
         });
     }
@@ -68,15 +74,16 @@ class AdminPanel {
 
         this.pendingUploads.set(slot, file);
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const previewId = this.getPreviewId(slot);
-            const placeholderId = this.getPlaceholderId(slot);
-            const preview = document.getElementById(previewId);
-            const placeholder = document.getElementById(placeholderId);
+        var reader = new FileReader();
+        var self = this;
+        reader.onload = function(e) {
+            var previewId = self.getPreviewId(slot);
+            var placeholderId = self.getPlaceholderId(slot);
+            var preview = document.getElementById(previewId);
+            var placeholder = document.getElementById(placeholderId);
             if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
             if (placeholder) placeholder.style.display = 'none';
-            const card = preview?.closest('.image-upload-card');
+            var card = preview?.closest('.image-upload-card');
             if (card) { card.classList.add('has-image'); card.querySelector('.remove-image').style.display = 'inline-flex'; }
         };
         reader.readAsDataURL(file);
@@ -84,11 +91,11 @@ class AdminPanel {
 
     handleImageRemoved(slot) {
         this.pendingUploads.set(slot, null);
-        const preview = document.getElementById(this.getPreviewId(slot));
-        const placeholder = document.getElementById(this.getPlaceholderId(slot));
+        var preview = document.getElementById(this.getPreviewId(slot));
+        var placeholder = document.getElementById(this.getPlaceholderId(slot));
         if (preview) { preview.src = ''; preview.style.display = 'none'; }
         if (placeholder) placeholder.style.display = 'block';
-        const card = preview?.closest('.image-upload-card');
+        var card = preview?.closest('.image-upload-card');
         if (card) { card.classList.remove('has-image'); card.querySelector('.remove-image').style.display = 'none'; }
     }
 
@@ -103,8 +110,11 @@ class AdminPanel {
     }
 
     bindSaveButtons() {
-        document.getElementById('saveBranding')?.addEventListener('click', () => this.saveBranding());
-        document.getElementById('saveSettings')?.addEventListener('click', () => this.saveSettings());
+        var self = this;
+        var saveBrandingBtn = document.getElementById('saveBranding');
+        var saveSettingsBtn = document.getElementById('saveSettings');
+        if (saveBrandingBtn) saveBrandingBtn.addEventListener('click', function() { self.saveBranding(); });
+        if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', function() { self.saveSettings(); });
     }
 
     async saveBranding() {
@@ -115,22 +125,27 @@ class AdminPanel {
 
         try {
             var updates = {};
-            var self = this;
 
-            for (var [slot, file] of this.pendingUploads.entries()) {
+            for (var entry of this.pendingUploads.entries()) {
+                var slot = entry[0];
+                var file = entry[1];
+
                 if (file === null) {
                     updates[slot + '_url'] = '';
                 } else if (file instanceof File) {
                     var fileExt = file.name.split('.').pop();
                     var filePath = slot + '.' + fileExt;
                     
-                    var uploadResult = await self.db.storage
+                    var uploadResult = await this.db.storage
                         .from('assets')
                         .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
-                    if (uploadResult.error) throw uploadResult.error;
+                    if (uploadResult.error) {
+                        console.error('Upload error:', uploadResult.error);
+                        throw uploadResult.error;
+                    }
 
-                    var urlResult = self.db.storage
+                    var urlResult = this.db.storage
                         .from('assets')
                         .getPublicUrl(filePath);
 
@@ -140,20 +155,25 @@ class AdminPanel {
 
             if (Object.keys(updates).length > 0) {
                 updates.updated_at = new Date().toISOString();
-                var settingsResult = await self.db
+                
+                var settingsResult = await this.db
                     .from('settings')
-                    .upsert({ id: 1, ...updates });
+                    .upsert({ id: 1, ...updates }, { onConflict: 'id' });
 
-                if (settingsResult.error) throw settingsResult.error;
+                if (settingsResult.error) {
+                    console.error('Settings update error:', settingsResult.error);
+                    throw settingsResult.error;
+                }
 
-                self.pendingUploads.clear();
-                self.showToast('Images saved successfully!');
+                this.pendingUploads.clear();
+                this.showToast('Images saved successfully!');
+                await this.loadCurrentSettings();
             } else {
-                self.showToast('No changes to save.');
+                this.showToast('No changes to save.');
             }
         } catch (error) {
             console.error('Failed to save images:', error);
-            this.showToast('Error saving images: ' + error.message, 'error');
+            this.showToast('Error: ' + (error.message || 'Unknown error'), 'error');
         } finally {
             saveBtn.textContent = originalText;
             saveBtn.disabled = false;
@@ -168,23 +188,27 @@ class AdminPanel {
 
         try {
             var settings = {
-                company_name: document.getElementById('settingCompanyName')?.value,
-                company_email: document.getElementById('settingCompanyEmail')?.value,
-                company_phone: document.getElementById('settingCompanyPhone')?.value,
-                company_address: document.getElementById('settingCompanyAddress')?.value,
+                company_name: document.getElementById('settingCompanyName')?.value || '',
+                company_email: document.getElementById('settingCompanyEmail')?.value || '',
+                company_phone: document.getElementById('settingCompanyPhone')?.value || '',
+                company_address: document.getElementById('settingCompanyAddress')?.value || '',
                 usd_pkr_rate: parseFloat(document.getElementById('settingUsdPkr')?.value) || 278.50,
                 updated_at: new Date().toISOString()
             };
 
             var result = await this.db
                 .from('settings')
-                .upsert({ id: 1, ...settings });
+                .upsert({ id: 1, ...settings }, { onConflict: 'id' });
 
-            if (result.error) throw result.error;
+            if (result.error) {
+                console.error('Settings save error:', result.error);
+                throw result.error;
+            }
+
             this.showToast('Settings saved successfully!');
         } catch (error) {
             console.error('Failed to save settings:', error);
-            this.showToast('Error saving settings: ' + error.message, 'error');
+            this.showToast('Error: ' + (error.message || 'Unknown error'), 'error');
         } finally {
             saveBtn.textContent = originalText;
             saveBtn.disabled = false;
@@ -194,7 +218,13 @@ class AdminPanel {
     async loadCurrentSettings() {
         try {
             var result = await this.db.from('settings').select('*').single();
-            if (result.error || !result.data) return;
+            
+            if (result.error) {
+                console.log('No settings found, using defaults');
+                return;
+            }
+            
+            if (!result.data) return;
 
             var settings = result.data;
 
@@ -209,11 +239,14 @@ class AdminPanel {
             for (var elementId in fieldMap) {
                 var el = document.getElementById(elementId);
                 var key = fieldMap[elementId];
-                if (el && settings[key] !== undefined) el.value = settings[key];
+                if (el && settings[key] !== undefined && settings[key] !== null) {
+                    el.value = settings[key];
+                }
             }
 
             var imageSlots = ['logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 'service_air', 'service_sea'];
             var self = this;
+            
             imageSlots.forEach(function(slot) {
                 var url = settings[slot + '_url'];
                 if (url) {
@@ -236,8 +269,13 @@ class AdminPanel {
         toast.textContent = message;
         toast.style.cssText = 'position:fixed;bottom:30px;right:30px;background:' + (type === 'error' ? '#ef4444' : '#22c55e') + ';color:white;padding:14px 24px;border-radius:10px;font-family:Inter,sans-serif;font-weight:500;font-size:0.9rem;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.4);animation:toastIn 0.3s ease-out;';
         document.body.appendChild(toast);
-        setTimeout(function() { toast.style.animation = 'toastOut 0.3s ease-in'; setTimeout(function() { toast.remove(); }, 300); }, 3500);
+        setTimeout(function() { 
+            toast.style.animation = 'toastOut 0.3s ease-in'; 
+            setTimeout(function() { toast.remove(); }, 300); 
+        }, 3500);
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() { new AdminPanel(); });
+document.addEventListener('DOMContentLoaded', function() { 
+    new AdminPanel(); 
+});
