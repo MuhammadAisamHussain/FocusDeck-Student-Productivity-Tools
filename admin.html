@@ -8,195 +8,53 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css">
+    <!-- THESE TWO LINES ARE CRITICAL -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="js/supabase.js"></script>
     <style>
-        /* Admin-specific styles */
-        .admin-layout {
-            display: grid;
-            grid-template-columns: 260px 1fr;
-            min-height: 100vh;
-        }
-
-        .admin-sidebar {
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border-subtle);
-            padding: 24px 0;
-        }
-
-        .admin-sidebar-header {
-            padding: 0 20px 24px;
-            border-bottom: 1px solid var(--border-subtle);
-            margin-bottom: 16px;
-        }
-
-        .admin-sidebar-header h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--accent);
-        }
-
-        .admin-sidebar-header p {
-            font-size: 0.8rem;
-            color: var(--text-tertiary);
-            margin-top: 4px;
-        }
-
-        .admin-nav {
-            list-style: none;
-        }
-
-        .admin-nav-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: var(--transition-fast);
-            border-left: 3px solid transparent;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .admin-nav-item:hover {
-            background: rgba(255,255,255,0.03);
-            color: var(--text-primary);
-        }
-
-        .admin-nav-item.active {
-            background: var(--accent-dim);
-            color: var(--accent);
-            border-left-color: var(--accent);
-        }
-
-        .admin-content {
-            padding: 32px;
-            overflow-y: auto;
-        }
-
-        .admin-section {
-            display: none;
-        }
-
-        .admin-section.active {
-            display: block;
-        }
-
-        .admin-section h3 {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-        }
-
-        .settings-group {
-            background: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-xl);
-            padding: 28px;
-            margin-bottom: 24px;
-        }
-
-        .settings-group h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .image-upload-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .image-upload-card {
-            background: var(--bg-elevated);
-            border: 2px dashed var(--border-medium);
-            border-radius: var(--radius-lg);
-            padding: 24px;
-            text-align: center;
-            transition: var(--transition-fast);
-            cursor: pointer;
-            position: relative;
-        }
-
-        .image-upload-card:hover {
-            border-color: var(--border-active);
-            background: var(--accent-dim);
-        }
-
-        .image-upload-card.has-image {
-            border-style: solid;
-            border-color: var(--border-subtle);
-        }
-
-        .image-preview {
-            width: 100%;
-            height: 160px;
-            object-fit: contain;
-            border-radius: var(--radius);
-            margin-bottom: 12px;
-            background: rgba(0,0,0,0.2);
-        }
-
-        .image-upload-card input[type="file"] {
-            display: none;
-        }
-
-        .upload-placeholder {
-            padding: 40px 0;
-        }
-
-        .upload-icon {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        .upload-label-text {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .upload-hint {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-top: 4px;
-        }
-
-        .image-actions {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 8px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        .form-grid .form-group:last-child {
-            grid-column: 1 / -1;
-        }
-
-        .save-bar {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            padding: 20px 0;
-            border-top: 1px solid var(--border-subtle);
-            margin-top: 24px;
-        }
+        .admin-layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+        .admin-sidebar { background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); padding: 24px 0; }
+        .admin-sidebar-header { padding: 0 20px 24px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 16px; }
+        .admin-sidebar-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+        .admin-sidebar-header p { font-size: 0.8rem; color: var(--text-tertiary); margin-top: 4px; }
+        .admin-nav { list-style: none; }
+        .admin-nav-item { padding: 12px 20px; cursor: pointer; color: var(--text-secondary); font-size: 0.9rem; font-weight: 500; transition: var(--transition-fast); border-left: 3px solid transparent; display: flex; align-items: center; gap: 12px; }
+        .admin-nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text-primary); }
+        .admin-nav-item.active { background: var(--accent-dim); color: var(--accent); border-left-color: var(--accent); }
+        .admin-content { padding: 32px; overflow-y: auto; }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+        .admin-section h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 24px; }
+        .settings-group { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px; margin-bottom: 24px; }
+        .settings-group h4 { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle); }
+        .image-upload-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .image-upload-card { background: var(--bg-elevated); border: 2px dashed var(--border-medium); border-radius: var(--radius-lg); padding: 24px; text-align: center; transition: var(--transition-fast); cursor: pointer; position: relative; }
+        .image-upload-card:hover { border-color: var(--border-active); background: var(--accent-dim); }
+        .image-upload-card.has-image { border-style: solid; border-color: var(--border-subtle); }
+        .image-preview { width: 100%; height: 160px; object-fit: contain; border-radius: var(--radius); margin-bottom: 12px; background: rgba(0,0,0,0.2); }
+        .image-upload-card input[type="file"] { display: none; }
+        .upload-placeholder { padding: 40px 0; }
+        .upload-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.5; }
+        .upload-label-text { font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); }
+        .upload-hint { font-size: 0.75rem; color: var(--text-tertiary); margin-top: 4px; }
+        .image-actions { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .save-bar { display: flex; justify-content: flex-end; gap: 12px; padding: 20px 0; border-top: 1px solid var(--border-subtle); margin-top: 24px; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: var(--radius); font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer; transition: var(--transition-fast); white-space: nowrap; }
+        .btn-amber { background: var(--accent); color: #0f1419; }
+        .btn-amber:hover { background: #f7b840; transform: translateY(-1px); }
+        .btn-outline-dark { background: transparent; border: 1px solid var(--border-medium); color: var(--text-primary); }
+        .btn-outline-dark:hover { background: rgba(255,255,255,0.04); }
+        .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+        .btn-lg { padding: 14px 28px; font-size: 1rem; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+        .form-group label { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input { background: var(--bg-tertiary); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 10px 14px; border-radius: var(--radius); font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; }
+        .form-group input:focus { border-color: var(--border-active); box-shadow: 0 0 0 3px var(--accent-dim); }
     </style>
 </head>
 <body class="app-body">
     <div class="admin-layout">
-        
-        <!-- Sidebar -->
         <aside class="admin-sidebar">
             <div class="admin-sidebar-header">
                 <h2>Admin Panel</h2>
@@ -204,207 +62,91 @@
             </div>
             <ul class="admin-nav">
                 <li class="admin-nav-item active" data-section="branding">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <polyline points="21 15 16 10 5 21"/>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                     Branding & Images
                 </li>
                 <li class="admin-nav-item" data-section="settings">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
                     General Settings
                 </li>
                 <li class="admin-nav-item" data-section="users">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 010 7.75"/>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
                     Manage Users
                 </li>
             </ul>
         </aside>
-
-        <!-- Main Content -->
         <main class="admin-content">
-            
-            <!-- Branding Section -->
             <section class="admin-section active" id="sectionBranding">
                 <h3>Branding & Images</h3>
-                <p style="color: var(--text-tertiary); margin-bottom: 28px;">
-                    Upload logos and images that appear across the platform. Changes take effect immediately.
-                </p>
-
+                <p style="color: var(--text-tertiary); margin-bottom: 28px;">Upload logos and images that appear across the platform. Changes take effect immediately.</p>
                 <div class="settings-group">
                     <h4>Company Logos</h4>
                     <div class="image-upload-grid">
-                        <!-- eCargoWorld Logo -->
                         <div class="image-upload-card" id="logoEcwCard">
                             <input type="file" id="logoEcwInput" accept="image/*" data-slot="logo_ecw">
-                            <div class="image-preview-wrap">
-                                <img class="image-preview" id="logoEcwPreview" src="" alt="eCargoWorld Logo" style="display:none;">
-                            </div>
-                            <div class="upload-placeholder" id="logoEcwPlaceholder">
-                                <div class="upload-icon">🏷️</div>
-                                <div class="upload-label-text">eCargoWorld Logo</div>
-                                <div class="upload-hint">White background recommended. PNG/SVG preferred.</div>
-                            </div>
-                            <div class="image-actions">
-                                <button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button>
-                                <button class="btn btn-outline-dark btn-sm remove-image" data-slot="logo_ecw" style="display:none;">Remove</button>
-                            </div>
+                            <div class="image-preview-wrap"><img class="image-preview" id="logoEcwPreview" src="" alt="eCargoWorld Logo" style="display:none;"></div>
+                            <div class="upload-placeholder" id="logoEcwPlaceholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">eCargoWorld Logo</div><div class="upload-hint">White background recommended. PNG/SVG preferred.</div></div>
+                            <div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="logo_ecw" style="display:none;">Remove</button></div>
                         </div>
-
-                        <!-- ALS Logo -->
                         <div class="image-upload-card" id="logoAlsCard">
                             <input type="file" id="logoAlsInput" accept="image/*" data-slot="logo_als">
-                            <div class="image-preview-wrap">
-                                <img class="image-preview" id="logoAlsPreview" src="" alt="ALS Logo" style="display:none;">
-                            </div>
-                            <div class="upload-placeholder" id="logoAlsPlaceholder">
-                                <div class="upload-icon">🏷️</div>
-                                <div class="upload-label-text">ALS Logo</div>
-                                <div class="upload-hint">Transparent background preferred. PNG/SVG preferred.</div>
-                            </div>
-                            <div class="image-actions">
-                                <button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button>
-                                <button class="btn btn-outline-dark btn-sm remove-image" data-slot="logo_als" style="display:none;">Remove</button>
-                            </div>
+                            <div class="image-preview-wrap"><img class="image-preview" id="logoAlsPreview" src="" alt="ALS Logo" style="display:none;"></div>
+                            <div class="upload-placeholder" id="logoAlsPlaceholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">ALS Logo</div><div class="upload-hint">Transparent background preferred. PNG/SVG preferred.</div></div>
+                            <div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="logo_als" style="display:none;">Remove</button></div>
                         </div>
                     </div>
                 </div>
-
                 <div class="settings-group">
                     <h4>Website Images</h4>
                     <div class="image-upload-grid">
-                        <!-- Hero Background -->
                         <div class="image-upload-card" id="heroImageCard">
                             <input type="file" id="heroImageInput" accept="image/*" data-slot="hero_image">
-                            <div class="image-preview-wrap">
-                                <img class="image-preview" id="heroImagePreview" src="" alt="Hero Background" style="display:none;">
-                            </div>
-                            <div class="upload-placeholder" id="heroImagePlaceholder">
-                                <div class="upload-icon">🖼️</div>
-                                <div class="upload-label-text">Hero Section Background</div>
-                                <div class="upload-hint">Recommended: 1920×1080px. Dark image works best.</div>
-                            </div>
-                            <div class="image-actions">
-                                <button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button>
-                                <button class="btn btn-outline-dark btn-sm remove-image" data-slot="hero_image" style="display:none;">Remove</button>
-                            </div>
+                            <div class="image-preview-wrap"><img class="image-preview" id="heroImagePreview" src="" alt="Hero Background" style="display:none;"></div>
+                            <div class="upload-placeholder" id="heroImagePlaceholder"><div class="upload-icon">🖼️</div><div class="upload-label-text">Hero Section Background</div><div class="upload-hint">Recommended: 1920×1080px. Dark image works best.</div></div>
+                            <div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="hero_image" style="display:none;">Remove</button></div>
                         </div>
-
-                        <!-- Why Us Background -->
                         <div class="image-upload-card" id="whyUsImageCard">
                             <input type="file" id="whyUsImageInput" accept="image/*" data-slot="why_us_image">
-                            <div class="image-preview-wrap">
-                                <img class="image-preview" id="whyUsImagePreview" src="" alt="Why Us Background" style="display:none;">
-                            </div>
-                            <div class="upload-placeholder" id="whyUsImagePlaceholder">
-                                <div class="upload-icon">🖼️</div>
-                                <div class="upload-label-text">Why Choose Us Background</div>
-                                <div class="upload-hint">Recommended: 1920×1080px. Dark/abstract image.</div>
-                            </div>
-                            <div class="image-actions">
-                                <button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button>
-                                <button class="btn btn-outline-dark btn-sm remove-image" data-slot="why_us_image" style="display:none;">Remove</button>
-                            </div>
+                            <div class="image-preview-wrap"><img class="image-preview" id="whyUsImagePreview" src="" alt="Why Us Background" style="display:none;"></div>
+                            <div class="upload-placeholder" id="whyUsImagePlaceholder"><div class="upload-icon">🖼️</div><div class="upload-label-text">Why Choose Us Background</div><div class="upload-hint">Recommended: 1920×1080px. Dark/abstract image.</div></div>
+                            <div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="why_us_image" style="display:none;">Remove</button></div>
                         </div>
-
-                        <!-- Service Images -->
                         <div class="image-upload-card" id="serviceAirImageCard">
                             <input type="file" id="serviceAirInput" accept="image/*" data-slot="service_air">
-                            <div class="image-preview-wrap">
-                                <img class="image-preview" id="serviceAirPreview" src="" alt="Air Freight" style="display:none;">
-                            </div>
-                            <div class="upload-placeholder" id="serviceAirPlaceholder">
-                                <div class="upload-icon">✈️</div>
-                                <div class="upload-label-text">Air Freight Image</div>
-                                <div class="upload-hint">Recommended: 800×600px</div>
-                            </div>
-                            <div class="image-actions">
-                                <button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button>
-                                <button class="btn btn-outline-dark btn-sm remove-image" data-slot="service_air" style="display:none;">Remove</button>
-                            </div>
+                            <div class="image-preview-wrap"><img class="image-preview" id="serviceAirPreview" src="" alt="Air Freight" style="display:none;"></div>
+                            <div class="upload-placeholder" id="serviceAirPlaceholder"><div class="upload-icon">✈️</div><div class="upload-label-text">Air Freight Image</div><div class="upload-hint">Recommended: 800×600px</div></div>
+                            <div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="service_air" style="display:none;">Remove</button></div>
                         </div>
-
                         <div class="image-upload-card" id="serviceSeaImageCard">
                             <input type="file" id="serviceSeaInput" accept="image/*" data-slot="service_sea">
-                            <div class="image-preview-wrap">
-                                <img class="image-preview" id="serviceSeaPreview" src="" alt="Sea Freight" style="display:none;">
-                            </div>
-                            <div class="upload-placeholder" id="serviceSeaPlaceholder">
-                                <div class="upload-icon">🚢</div>
-                                <div class="upload-label-text">Sea Freight Image</div>
-                                <div class="upload-hint">Recommended: 800×600px</div>
-                            </div>
-                            <div class="image-actions">
-                                <button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button>
-                                <button class="btn btn-outline-dark btn-sm remove-image" data-slot="service_sea" style="display:none;">Remove</button>
-                            </div>
+                            <div class="image-preview-wrap"><img class="image-preview" id="serviceSeaPreview" src="" alt="Sea Freight" style="display:none;"></div>
+                            <div class="upload-placeholder" id="serviceSeaPlaceholder"><div class="upload-icon">🚢</div><div class="upload-label-text">Sea Freight Image</div><div class="upload-hint">Recommended: 800×600px</div></div>
+                            <div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="service_sea" style="display:none;">Remove</button></div>
                         </div>
                     </div>
                 </div>
-
-                <div class="save-bar">
-                    <button class="btn btn-amber btn-lg" id="saveBranding">Save All Images</button>
-                </div>
+                <div class="save-bar"><button class="btn btn-amber btn-lg" id="saveBranding">Save All Images</button></div>
             </section>
-
-            <!-- General Settings Section -->
             <section class="admin-section" id="sectionSettings">
                 <h3>General Settings</h3>
                 <div class="settings-group">
                     <h4>Company Information</h4>
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label>Company Name</label>
-                            <input type="text" id="settingCompanyName" value="ALS eCargoWorld">
-                        </div>
-                        <div class="form-group">
-                            <label>Company Email</label>
-                            <input type="email" id="settingCompanyEmail" value="info@alsecargoworld.com">
-                        </div>
-                        <div class="form-group">
-                            <label>Phone Number</label>
-                            <input type="tel" id="settingCompanyPhone" value="+92 300 0000000">
-                        </div>
-                        <div class="form-group">
-                            <label>Address</label>
-                            <input type="text" id="settingCompanyAddress" value="Lahore, Pakistan">
-                        </div>
-                        <div class="form-group">
-                            <label>USD to PKR Exchange Rate</label>
-                            <input type="number" id="settingUsdPkr" value="278.50" step="0.01">
-                        </div>
+                        <div class="form-group"><label>Company Name</label><input type="text" id="settingCompanyName" value="eCargoWorld"></div>
+                        <div class="form-group"><label>Company Email</label><input type="email" id="settingCompanyEmail" value="info@ecargopk.com"></div>
+                        <div class="form-group"><label>Phone Number</label><input type="tel" id="settingCompanyPhone" value="+92 42 3572 2342-43"></div>
+                        <div class="form-group"><label>Address</label><input type="text" id="settingCompanyAddress" value="Lahore, Pakistan"></div>
+                        <div class="form-group"><label>USD to PKR Exchange Rate</label><input type="number" id="settingUsdPkr" value="278.50" step="0.01"></div>
                     </div>
                 </div>
-                <div class="save-bar">
-                    <button class="btn btn-amber btn-lg" id="saveSettings">Save Settings</button>
-                </div>
+                <div class="save-bar"><button class="btn btn-amber btn-lg" id="saveSettings">Save Settings</button></div>
             </section>
-
-            <!-- Users Section -->
             <section class="admin-section" id="sectionUsers">
                 <h3>Manage Users</h3>
-                <div class="settings-group">
-                    <h4>Employees & Managers</h4>
-                    <div id="usersList">
-                        <p style="color: var(--text-tertiary);">User management coming soon.</p>
-                    </div>
-                </div>
+                <div class="settings-group"><h4>Employees & Managers</h4><div id="usersList"><p style="color: var(--text-tertiary);">User management coming soon.</p></div></div>
             </section>
-
         </main>
     </div>
-
-    <script type="module" src="js/supabase.js"></script>
-    <script type="module" src="js/store.js"></script>
     <script type="module" src="js/admin.js"></script>
 </body>
 </html>
