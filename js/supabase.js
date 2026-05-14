@@ -8,6 +8,11 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Create Supabase client
 const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Fallback for when CDN hasn't loaded yet
+if (!supabase) {
+    console.warn('Supabase CDN not loaded. Ensure the script tag is included in HTML.');
+}
+
 // Make available globally
 window.supabaseClient = supabase;
 
