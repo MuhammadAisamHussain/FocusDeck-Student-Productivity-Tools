@@ -23,7 +23,7 @@ class AdminPanel {
                 document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
                 item.classList.add('active');
                 document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-                document.getElementById(`section${this.capitalize(section)}`)?.classList.add('active');
+                document.getElementById('section' + section.charAt(0).toUpperCase() + section.slice(1))?.classList.add('active');
             });
         });
     }
@@ -70,8 +70,10 @@ class AdminPanel {
 
         const reader = new FileReader();
         reader.onload = (e) => {
-            const preview = document.getElementById(this.getPreviewId(slot));
-            const placeholder = document.getElementById(this.getPlaceholderId(slot));
+            const previewId = this.getPreviewId(slot);
+            const placeholderId = this.getPlaceholderId(slot);
+            const preview = document.getElementById(previewId);
+            const placeholder = document.getElementById(placeholderId);
             if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
             if (placeholder) placeholder.style.display = 'none';
             const card = preview?.closest('.image-upload-card');
@@ -91,12 +93,12 @@ class AdminPanel {
     }
 
     getPreviewId(slot) {
-        const map = { logo_ecw: 'logoEcwPreview', logo_als: 'logoAlsPreview', hero_image: 'heroImagePreview', why_us_image: 'whyUsImagePreview', service_air: 'serviceAirPreview', service_sea: 'serviceSeaPreview' };
+        var map = { logo_ecw: 'logoEcwPreview', logo_als: 'logoAlsPreview', hero_image: 'heroImagePreview', why_us_image: 'whyUsImagePreview', service_air: 'serviceAirPreview', service_sea: 'serviceSeaPreview' };
         return map[slot] || '';
     }
 
     getPlaceholderId(slot) {
-        const map = { logo_ecw: 'logoEcwPlaceholder', logo_als: 'logoAlsPlaceholder', hero_image: 'heroImagePlaceholder', why_us_image: 'whyUsImagePlaceholder', service_air: 'serviceAirPlaceholder', service_sea: 'serviceSeaPlaceholder' };
+        var map = { logo_ecw: 'logoEcwPlaceholder', logo_als: 'logoAlsPlaceholder', hero_image: 'heroImagePlaceholder', why_us_image: 'whyUsImagePlaceholder', service_air: 'serviceAirPlaceholder', service_sea: 'serviceSeaPlaceholder' };
         return map[slot] || '';
     }
 
@@ -106,46 +108,48 @@ class AdminPanel {
     }
 
     async saveBranding() {
-        const saveBtn = document.getElementById('saveBranding');
-        const originalText = saveBtn.textContent;
+        var saveBtn = document.getElementById('saveBranding');
+        var originalText = saveBtn.textContent;
         saveBtn.textContent = 'Uploading...';
         saveBtn.disabled = true;
 
         try {
-            const updates = {};
+            var updates = {};
+            var self = this;
 
-            for (const [slot, file] of this.pendingUploads.entries()) {
+            for (var [slot, file] of this.pendingUploads.entries()) {
                 if (file === null) {
-                    updates[`${slot}_url`] = '';
+                    updates[slot + '_url'] = '';
                 } else if (file instanceof File) {
-                    const fileExt = file.name.split('.').pop();
-                    const filePath = `${slot}.${fileExt}`;
+                    var fileExt = file.name.split('.').pop();
+                    var filePath = slot + '.' + fileExt;
                     
-                    const { data, error } = await this.db.storage
+                    var uploadResult = await self.db.storage
                         .from('assets')
                         .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
-                    if (error) throw error;
+                    if (uploadResult.error) throw uploadResult.error;
 
-                    const { data: { publicUrl } } = this.db.storage
+                    var urlResult = self.db.storage
                         .from('assets')
                         .getPublicUrl(filePath);
 
-                    updates[`${slot}_url`] = publicUrl;
+                    updates[slot + '_url'] = urlResult.data.publicUrl;
                 }
             }
 
             if (Object.keys(updates).length > 0) {
-                const { error } = await this.db
+                updates.updated_at = new Date().toISOString();
+                var settingsResult = await self.db
                     .from('settings')
-                    .upsert({ id: 1, ...updates, updated_at: new Date().toISOString() });
+                    .upsert({ id: 1, ...updates });
 
-                if (error) throw error;
+                if (settingsResult.error) throw settingsResult.error;
 
-                this.pendingUploads.clear();
-                this.showToast('Images saved successfully!');
+                self.pendingUploads.clear();
+                self.showToast('Images saved successfully!');
             } else {
-                this.showToast('No changes to save.');
+                self.showToast('No changes to save.');
             }
         } catch (error) {
             console.error('Failed to save images:', error);
@@ -157,25 +161,26 @@ class AdminPanel {
     }
 
     async saveSettings() {
-        const saveBtn = document.getElementById('saveSettings');
-        const originalText = saveBtn.textContent;
+        var saveBtn = document.getElementById('saveSettings');
+        var originalText = saveBtn.textContent;
         saveBtn.textContent = 'Saving...';
         saveBtn.disabled = true;
 
         try {
-            const settings = {
+            var settings = {
                 company_name: document.getElementById('settingCompanyName')?.value,
                 company_email: document.getElementById('settingCompanyEmail')?.value,
                 company_phone: document.getElementById('settingCompanyPhone')?.value,
                 company_address: document.getElementById('settingCompanyAddress')?.value,
-                usd_pkr_rate: parseFloat(document.getElementById('settingUsdPkr')?.value) || 278.50
+                usd_pkr_rate: parseFloat(document.getElementById('settingUsdPkr')?.value) || 278.50,
+                updated_at: new Date().toISOString()
             };
 
-            const { error } = await this.db
+            var result = await this.db
                 .from('settings')
-                .upsert({ id: 1, ...settings, updated_at: new Date().toISOString() });
+                .upsert({ id: 1, ...settings });
 
-            if (error) throw error;
+            if (result.error) throw result.error;
             this.showToast('Settings saved successfully!');
         } catch (error) {
             console.error('Failed to save settings:', error);
@@ -188,10 +193,12 @@ class AdminPanel {
 
     async loadCurrentSettings() {
         try {
-            const { data: settings, error } = await this.db.from('settings').select('*').single();
-            if (error || !settings) return;
+            var result = await this.db.from('settings').select('*').single();
+            if (result.error || !result.data) return;
 
-            const fieldMap = {
+            var settings = result.data;
+
+            var fieldMap = {
                 settingCompanyName: 'company_name',
                 settingCompanyEmail: 'company_email',
                 settingCompanyPhone: 'company_phone',
@@ -199,20 +206,22 @@ class AdminPanel {
                 settingUsdPkr: 'usd_pkr_rate'
             };
 
-            Object.entries(fieldMap).forEach(([elementId, settingKey]) => {
-                const el = document.getElementById(elementId);
-                if (el && settings[settingKey] !== undefined) el.value = settings[settingKey];
-            });
+            for (var elementId in fieldMap) {
+                var el = document.getElementById(elementId);
+                var key = fieldMap[elementId];
+                if (el && settings[key] !== undefined) el.value = settings[key];
+            }
 
-            const imageSlots = ['logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 'service_air', 'service_sea'];
-            imageSlots.forEach(slot => {
-                const url = settings[`${slot}_url`];
+            var imageSlots = ['logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 'service_air', 'service_sea'];
+            var self = this;
+            imageSlots.forEach(function(slot) {
+                var url = settings[slot + '_url'];
                 if (url) {
-                    const preview = document.getElementById(this.getPreviewId(slot));
-                    const placeholder = document.getElementById(this.getPlaceholderId(slot));
+                    var preview = document.getElementById(self.getPreviewId(slot));
+                    var placeholder = document.getElementById(self.getPlaceholderId(slot));
                     if (preview) { preview.src = url; preview.style.display = 'block'; }
                     if (placeholder) placeholder.style.display = 'none';
-                    const card = preview?.closest('.image-upload-card');
+                    var card = preview?.closest('.image-upload-card');
                     if (card) { card.classList.add('has-image'); card.querySelector('.remove-image').style.display = 'inline-flex'; }
                 }
             });
@@ -221,15 +230,14 @@ class AdminPanel {
         }
     }
 
-    showToast(message, type = 'success') {
-        const toast = document.createElement('div');
+    showToast(message, type) {
+        type = type || 'success';
+        var toast = document.createElement('div');
         toast.textContent = message;
-        toast.style.cssText = `position:fixed;bottom:30px;right:30px;background:${type==='error'?'#ef4444':'#22c55e'};color:white;padding:14px 24px;border-radius:10px;font-family:'Inter',sans-serif;font-weight:500;font-size:0.9rem;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.4);animation:toastIn 0.3s ease-out;`;
+        toast.style.cssText = 'position:fixed;bottom:30px;right:30px;background:' + (type === 'error' ? '#ef4444' : '#22c55e') + ';color:white;padding:14px 24px;border-radius:10px;font-family:Inter,sans-serif;font-weight:500;font-size:0.9rem;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.4);animation:toastIn 0.3s ease-out;';
         document.body.appendChild(toast);
-        setTimeout(() => { toast.style.animation = 'toastOut 0.3s ease-in'; setTimeout(() => toast.remove(), 300); }, 3500);
+        setTimeout(function() { toast.style.animation = 'toastOut 0.3s ease-in'; setTimeout(function() { toast.remove(); }, 300); }, 3500);
     }
-
-    capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
 }
 
-document.addEventListener('DOMContentLoaded', () => new AdminPanel());
+document.addEventListener('DOMContentLoaded', function() { new AdminPanel(); });
