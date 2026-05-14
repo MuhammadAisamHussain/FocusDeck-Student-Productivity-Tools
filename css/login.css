@@ -1,0 +1,374 @@
+/* ============================================
+   eCargoWorld — Login Page Styles
+   Brand: #2E3F5C (navy) + #F5A623 (amber)
+   ============================================ */
+
+:root {
+    --primary: #2E3F5C;
+    --primary-light: #3D5280;
+    --primary-dark: #1A2E4A;
+    --accent: #F5A623;
+    --accent-light: #F7BC52;
+    --accent-dark: #D4890E;
+    --white: #FFFFFF;
+    --off-white: #F8F9FB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-400: #9CA3AF;
+    --gray-600: #4B5563;
+    --text-dark: #2E3F5C;
+    --text-light: #FFFFFF;
+    --text-muted: #6B7280;
+    --red: #DC2626;
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.15);
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    height: 100%;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--off-white);
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+.login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+/* ============================================
+   LEFT: BRAND PANEL
+   ============================================ */
+.login-brand {
+    position: relative;
+    background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 40%, var(--primary-light) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.brand-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 30% 70%, rgba(245,166,35,0.06) 0%, transparent 50%),
+        radial-gradient(circle at 70% 30%, rgba(255,255,255,0.03) 0%, transparent 40%);
+}
+
+.brand-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 3rem;
+    max-width: 440px;
+}
+
+.brand-logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 2rem;
+}
+
+.brand-logo {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+.brand-logo-ecw {
+    background: var(--white);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+}
+
+.brand-divider {
+    width: 1px;
+    height: 36px;
+    background: rgba(255,255,255,0.25);
+}
+
+.brand-content h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.brand-tagline {
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-bottom: 1.5rem;
+}
+
+.brand-desc {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+}
+
+.brand-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: left;
+}
+
+.brand-feat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.9rem;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--accent);
+}
+
+.feat-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+/* ============================================
+   RIGHT: LOGIN FORM
+   ============================================ */
+.login-form-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--white);
+    padding: 2rem;
+}
+
+.login-form-wrap {
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-form-wrap h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.login-sub {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    transition: var(--transition);
+    background: var(--off-white);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(245,166,35,0.1);
+    background: var(--white);
+}
+
+.password-wrap {
+    position: relative;
+}
+
+.password-wrap input {
+    padding-right: 50px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    color: var(--gray-400);
+    transition: var(--transition);
+}
+
+.toggle-password:hover {
+    color: var(--primary);
+}
+
+/* Form Options */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.remember-me input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.forgot-link {
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-link:hover {
+    color: var(--accent-dark);
+    text-decoration: underline;
+}
+
+/* Login Button */
+.btn-login {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: var(--primary-dark);
+    border: none;
+    border-radius: 50px;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-login:hover {
+    background: var(--accent-light);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245,166,35,0.35);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+.btn-login:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-spinner {
+    display: flex;
+    align-items: center;
+}
+
+/* Error Message */
+.login-error {
+    margin-top: 1rem;
+    padding: 14px 18px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: var(--radius);
+    color: var(--red);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+/* Help Text */
+.login-help {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.login-help a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-help a:hover {
+    text-decoration: underline;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .login-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .login-brand {
+        display: none;
+    }
+    
+    .login-form-panel {
+        padding: 2rem 1.5rem;
+        align-items: flex-start;
+        padding-top: 4rem;
+    }
+    
+    .login-form-wrap h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+}
