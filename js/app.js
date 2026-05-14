@@ -45,6 +45,11 @@
             document.getElementById('roleBadge').textContent = 'EMPLOYEE';
         }
 
+        // Set flight tracker manager status
+        if (typeof FlightTracker !== 'undefined') {
+            FlightTracker.setManager(isManager);
+        }
+
         // Load overview
         loadDashboardOverview();
     }
@@ -83,7 +88,7 @@
 
         // Load screen data
         if (screenName === 'dashboard') loadDashboardOverview();
-        if (screenName === 'shipments') loadShipments();
+        if (screenName === 'shipments') loadShipmentsPage();
         if (screenName === 'tasks') loadTasks();
         if (screenName === 'rates') loadRates();
         if (screenName === 'team') loadTeam();
@@ -178,40 +183,38 @@
         }
     }
 
-    // ============ SHIPMENTS ============
-    async function loadShipments() {
-        var result = await db.from('shipments').select('*').order('created_at', { ascending: false });
-        var tbody = document.getElementById('shipmentTableBody');
-        if (!result.data || result.data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No shipments yet.</p><button class="btn btn-amber" id="btnNewShipmentEmpty">+ Create First Shipment</button></div></td></tr>';
-            document.getElementById('btnNewShipmentEmpty')?.addEventListener('click', function() { alert('Shipment form coming in Batch 3'); });
-            return;
-        }
+    // Expose to global scope for ShipmentManager
+    window.loadDashboardOverview = loadDashboardOverview;
 
-        tbody.innerHTML = result.data.map(function(s) {
-            return '<tr>' +
-                '<td><span class="awb-mono">' + escapeHtml(s.awb_number || 'Draft') + '</span></td>' +
-                '<td>' + escapeHtml(s.customer_name) + '</td>' +
-                '<td><div class="route-display"><span class="route-code">' + escapeHtml(s.origin) + '</span><span style="color:var(--text-tertiary)">→</span><span class="route-code">' + escapeHtml(s.destination) + '</span></div></td>' +
-                '<td>' + escapeHtml(s.airline || '—') + '</td>' +
-                '<td>' + (s.weight_kg ? s.weight_kg + ' kg' : '—') + '</td>' +
-                '<td><span class="status-badge status-' + s.status + '">' + formatStatus(s.status) + '</span></td>' +
-                '<td><div class="row-actions"><button class="row-action-btn advance-status" data-id="' + s.id + '" data-status="' + s.status + '">▶</button></div></td>' +
-                '</tr>';
-        }).join('');
+    // ============ SHIPMENTS (using ShipmentManager) ============
+    window.loadShipmentsPage = async function() {
+        var filterStatus = document.getElementById('filterStatus');
+        var filters = {};
+        if (filterStatus && filterStatus.value) filters.status = filterStatus.value;
 
-        // Bind status advance buttons
-        document.querySelectorAll('.advance-status').forEach(function(btn) {
-            btn.addEventListener('click', async function() {
-                var id = btn.dataset.id;
-                var current = btn.dataset.status;
-                var next = getNextStatus(current);
-                if (!next) return;
-                await db.from('shipments').update({ status: next, updated_at: new Date().toISOString() }).eq('id', id);
-                loadShipments();
-                loadDashboardOverview();
+        var shipments = await ShipmentManager.loadShipments(filters);
+        ShipmentManager.renderTable(shipments, 'shipmentTableBody');
+
+        // Populate filter dropdown if empty
+        if (filterStatus && filterStatus.options.length <= 1) {
+            var statuses = ['draft', 'confirmed', 'booked', 'departed', 'arrived', 'delivered'];
+            statuses.forEach(function(s) {
+                var opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = ShipmentManager.formatStatus(s);
+                filterStatus.appendChild(opt);
             });
-        });
+            filterStatus.addEventListener('change', function() {
+                window.loadShipmentsPage();
+            });
+        }
+    };
+
+    // Initial load if on shipments screen
+    function loadShipments() {
+        if (typeof window.loadShipmentsPage === 'function') {
+            window.loadShipmentsPage();
+        }
     }
 
     // ============ TASKS ============
@@ -258,8 +261,14 @@
             '</div>';
     }
 
-    // ============ TEAM ============
+    // ============ TEAM (Manager Only) ============
     async function loadTeam() {
+        var isManager = currentUser.profile && (currentUser.profile.role === 'manager' || currentUser.profile.is_admin);
+        if (!isManager) {
+            document.getElementById('teamContainer').innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">Access restricted to managers.</p>';
+            return;
+        }
+
         var result = await db.from('profiles').select('*');
         var container = document.getElementById('teamContainer');
         if (!result.data || result.data.length === 0) {
@@ -268,19 +277,13 @@
         }
         container.innerHTML = result.data.map(function(p) {
             return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;">' +
-                '<div style="width:40px;height:40px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:#1A2E4A;">' + (p.full_name || '?').charAt(0) + '</div>' +
-                '<div style="flex:1;"><strong>' + escapeHtml(p.full_name) + '</strong><br><small style="color:var(--text-tertiary)">' + p.role + '</small></div>' +
+                '<div style="width:40px;height:40px;border-radius:50%;background:' + (p.is_admin ? 'var(--accent)' : 'var(--bg-tertiary)') + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:' + (p.is_admin ? '#1A2E4A' : 'var(--text-primary)') + ';">' + (p.full_name || '?').charAt(0).toUpperCase() + '</div>' +
+                '<div style="flex:1;"><strong>' + escapeHtml(p.full_name) + '</strong><br><small style="color:var(--text-tertiary);">' + p.role + (p.is_admin ? ' • Admin' : '') + '</small></div>' +
                 '</div>';
         }).join('');
     }
 
     // ============ HELPERS ============
-    function getNextStatus(current) {
-        var flow = ['draft', 'confirmed', 'booked', 'departed', 'arrived', 'delivered'];
-        var idx = flow.indexOf(current);
-        return idx < flow.length - 1 ? flow[idx + 1] : null;
-    }
-
     function formatStatus(s) {
         return s.charAt(0).toUpperCase() + s.slice(1);
     }
@@ -310,11 +313,34 @@
         return div.innerHTML;
     }
 
+    // ============ EVENT HANDLERS ============
+
     // New shipment button
     document.addEventListener('click', function(e) {
         if (e.target.id === 'btnNewShipment' || e.target.closest('#btnNewShipment')) {
-            alert('Shipment creation form coming in Batch 3');
+            if (typeof ShipmentManager !== 'undefined') {
+                ShipmentManager.openShipmentForm();
+            } else {
+                alert('Shipment manager loading...');
+            }
         }
+        if (e.target.id === 'btnNewShipmentEmpty' || e.target.closest('#btnNewShipmentEmpty')) {
+            if (typeof ShipmentManager !== 'undefined') {
+                ShipmentManager.openShipmentForm();
+            } else {
+                alert('Shipment manager loading...');
+            }
+        }
+    });
+
+    // Delegate task button
+    document.getElementById('btnDelegateTask')?.addEventListener('click', function() {
+        alert('Task delegation form coming soon.');
+    });
+
+    // Add rate button
+    document.getElementById('btnAddRate')?.addEventListener('click', function() {
+        alert('Rate form coming soon.');
     });
 
 })();
