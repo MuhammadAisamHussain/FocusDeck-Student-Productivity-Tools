@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     initScrollAnimations();
     await loadDynamicImages();
     await loadCertifications();
-    initGlobe();
 });
 
 async function loadDynamicImages() {
@@ -152,52 +151,6 @@ function initScrollAnimations() {
         el.style.opacity = '0'; el.style.transform = 'translateY(30px)'; el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
         observer.observe(el);
     });
-}
-
-function initGlobe() {
-    var container = document.getElementById('globeViz');
-    if (!container) return;
-    if (typeof Globe === 'undefined') { console.log('Globe.GL not loaded'); return; }
-
-    try {
-        var airports = [
-            { lat: 31.52, lng: 74.40 }, { lat: 24.86, lng: 67.00 },
-            { lat: 33.68, lng: 73.04 }, { lat: 25.20, lng: 55.27 },
-            { lat: 25.25, lng: 55.36 }, { lat: 21.54, lng: 39.17 },
-            { lat: 51.47, lng: -0.46 }, { lat: 41.00, lng: 28.97 },
-            { lat: 40.64, lng: -73.78 }, { lat: 1.36, lng: 103.99 },
-            { lat: -33.95, lng: 151.18 }, { lat: 48.86, lng: 2.35 }
-        ];
-        var arcs = [
-            { startLat: 31.52, startLng: 74.40, endLat: 25.20, endLng: 55.27 },
-            { startLat: 31.52, startLng: 74.40, endLat: 25.25, endLng: 55.36 },
-            { startLat: 24.86, startLng: 67.00, endLat: 25.20, endLng: 55.27 },
-            { startLat: 24.86, startLng: 67.00, endLat: 21.54, endLng: 39.17 },
-            { startLat: 33.68, startLng: 73.04, endLat: 41.00, endLng: 28.97 },
-            { startLat: 31.52, startLng: 74.40, endLat: 51.47, endLng: -0.46 },
-            { startLat: 25.20, startLng: 55.27, endLat: 40.64, endLng: -73.78 },
-            { startLat: 25.25, startLng: 55.36, endLat: 1.36, endLng: 103.99 }
-        ];
-
-        Globe()
-            .globeImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
-            .pointOfView({ altitude: 2.8 })
-            .pointColor(function() { return '#F5A623'; })
-            .pointAltitude(0)
-            .pointRadius(0.15)
-            .pointsData(airports)
-            .arcColor(function() { return '#F5A623'; })
-            .arcAltitude(0.2)
-            .arcStroke(0.6)
-            .arcDashLength(0.25)
-            .arcDashGap(0.5)
-            .arcDashInitialGap(function() { return Math.random(); })
-            .arcDashAnimateTime(4000)
-            .arcsData(arcs)
-            (container);
-    } catch(e) {
-        console.error('Globe init error:', e);
-    }
 }
 
 var animStyles = document.createElement('style');
