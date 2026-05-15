@@ -77,8 +77,15 @@ body {
 .stat-item { display: flex; flex-direction: column; }
 .stat-number { font-size: 2rem; font-weight: 700; color: var(--accent); line-height: 1; }
 .stat-label { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 4px; }
-.hero-visual { display: flex; align-items: center; justify-content: center; min-height: 450px; }
-#globeViz { border-radius: 50%; overflow: hidden; }
+
+/* Hero Visual - Globe */
+.hero-visual { 
+    display: flex; align-items: center; justify-content: center; 
+    width: 450px; height: 450px; 
+    border-radius: 50%; overflow: hidden;
+    margin: 0 auto;
+}
+#globeViz { width: 100%; height: 100%; }
 .hero-arc { position: absolute; bottom: -2px; left: 0; right: 0; height: 80px; background: var(--white); border-radius: 50% 50% 0 0 / 100% 100% 0 0; z-index: 3; }
 
 /* Sections */
@@ -107,11 +114,9 @@ body {
 .about-content p { font-size: 1rem; color: rgba(255,255,255,0.8); margin-bottom: 1.25rem; line-height: 1.7; }
 .certifications { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.15); }
 .cert-label { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 1.5rem; }
-.cert-badges { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; align-items: center; margin-bottom: 0.75rem; }
+.cert-badges { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; align-items: center; }
 .cert-logo-img { height: 50px; width: auto; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.85; transition: var(--transition); margin: 0 12px; }
 .cert-logo-img:hover { opacity: 1; }
-.cert-names { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
-.cert-names span { font-size: 0.85rem; color: rgba(255,255,255,0.6); letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
 
 /* Mission & Values */
 .mission-section { background: var(--off-white); }
@@ -197,7 +202,7 @@ body {
     .hero-subtext { max-width: 100%; }
     .hero-ctas { justify-content: center; }
     .hero-stats { justify-content: center; }
-    .hero-visual { min-height: 350px; }
+    .hero-visual { width: 350px; height: 350px; }
     .hero-headline { font-size: 2.5rem; }
     .why-grid { grid-template-columns: repeat(2, 1fr); }
     .service-block-content { grid-template-columns: 1fr; gap: 2rem; }
@@ -214,14 +219,12 @@ body {
     .logo { height: 40px; }
     .why-grid { grid-template-columns: 1fr; }
     .hero-headline { font-size: 2rem; }
-    .hero-visual { min-height: 280px; }
-    #globeViz { width: 280px !important; height: 280px !important; }
+    .hero-visual { width: 280px; height: 280px; }
     .section-header h2 { font-size: 1.8rem; }
     .journey-steps { flex-direction: column; }
     .journey-arrow { transform: rotate(90deg); padding: 0.5rem 0; }
     .contact-form .form-row { grid-template-columns: 1fr; }
     .service-feature-list { grid-template-columns: 1fr; }
     .footer-top { grid-template-columns: 1fr; gap: 2rem; }
-    .cert-badges { gap: 1rem; }
     .cert-logo-img { height: 35px; }
 }
