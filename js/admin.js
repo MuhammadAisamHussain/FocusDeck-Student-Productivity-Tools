@@ -5,7 +5,6 @@
 (function() {
     'use strict';
 
-    // ============ AUTH CHECK ============
     async function checkAdminAccess() {
         try {
             var userResult = await window.supabase.auth.getUser();
@@ -31,7 +30,6 @@
         }
     }
 
-    // ============ ADMIN PANEL CLASS ============
     class AdminPanel {
         constructor() {
             this.db = window.supabase;
@@ -42,7 +40,6 @@
         async init() {
             var allowed = await checkAdminAccess();
             if (!allowed) return;
-
             this.bindNavigation();
             this.bindImageUploads();
             this.bindSaveButtons();
@@ -50,7 +47,6 @@
         }
 
         bindNavigation() {
-            var self = this;
             document.querySelectorAll('.admin-nav-item').forEach(function(item) {
                 item.addEventListener('click', function() {
                     var section = item.dataset.section;
@@ -82,7 +78,8 @@
             });
 
             document.querySelectorAll('.image-upload-card').forEach(function(card) {
-                card.addEventListener('click', function() {
+                card.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
                     var input = card.querySelector('input[type="file"]');
                     if (input) input.click();
                 });
@@ -117,8 +114,8 @@
                 var placeholder = document.getElementById(placeholderId);
                 if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
                 if (placeholder) placeholder.style.display = 'none';
-                var card = preview?.closest('.image-upload-card');
-                if (card) { card.classList.add('has-image'); card.querySelector('.remove-image').style.display = 'inline-flex'; }
+                var card = preview ? preview.closest('.image-upload-card') : null;
+                if (card) { card.classList.add('has-image'); var rm = card.querySelector('.remove-image'); if (rm) rm.style.display = 'inline-flex'; }
             };
             reader.readAsDataURL(file);
         }
@@ -129,8 +126,8 @@
             var placeholder = document.getElementById(this.getPlaceholderId(slot));
             if (preview) { preview.src = ''; preview.style.display = 'none'; }
             if (placeholder) placeholder.style.display = 'block';
-            var card = preview?.closest('.image-upload-card');
-            if (card) { card.classList.remove('has-image'); card.querySelector('.remove-image').style.display = 'none'; }
+            var card = preview ? preview.closest('.image-upload-card') : null;
+            if (card) { card.classList.remove('has-image'); var rm = card.querySelector('.remove-image'); if (rm) rm.style.display = 'none'; }
         }
 
         getPreviewId(slot) {
@@ -214,13 +211,13 @@
                     if (settingsResult.error) throw settingsResult.error;
 
                     this.pendingUploads.clear();
-                    this.showToast('Images and names saved successfully!');
+                    this.showToast('All changes saved successfully!');
                     await this.loadCurrentSettings();
                 } else {
                     this.showToast('No changes to save.');
                 }
             } catch (error) {
-                console.error('Failed to save images:', error);
+                console.error('Failed to save:', error);
                 this.showToast('Error: ' + (error.message || 'Unknown error'), 'error');
             } finally {
                 saveBtn.textContent = originalText;
@@ -304,8 +301,8 @@
                         var placeholder = document.getElementById(self.getPlaceholderId(slot));
                         if (preview) { preview.src = url; preview.style.display = 'block'; }
                         if (placeholder) placeholder.style.display = 'none';
-                        var card = preview?.closest('.image-upload-card');
-                        if (card) { card.classList.add('has-image'); card.querySelector('.remove-image').style.display = 'inline-flex'; }
+                        var card = preview ? preview.closest('.image-upload-card') : null;
+                        if (card) { card.classList.add('has-image'); var rm = card.querySelector('.remove-image'); if (rm) rm.style.display = 'inline-flex'; }
                     }
                 });
             } catch (error) {
