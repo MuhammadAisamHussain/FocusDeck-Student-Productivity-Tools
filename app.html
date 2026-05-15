@@ -18,8 +18,6 @@
         <div class="command-left">
             <div class="brand-block">
                 <img src="" alt="eCargoWorld" class="cmd-logo cmd-logo-ecw" id="dashLogoEcw" data-slot="logo_ecw_url">
-                <span class="cmd-divider"></span>
-                <img src="" alt="ALS" class="cmd-logo cmd-logo-als" id="dashLogoAls" data-slot="logo_als_url">
             </div>
             <nav class="cmd-nav" id="mainNav">
                 <button class="cmd-nav-item active" data-screen="dashboard">
@@ -38,6 +36,10 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
                     <span>Rates</span>
                 </button>
+                <button class="cmd-nav-item manager-only" data-screen="flights" style="display:none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    <span>Flights</span>
+                </button>
                 <button class="cmd-nav-item manager-only" data-screen="team" style="display:none;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
                     <span>Team</span>
@@ -46,6 +48,7 @@
         </div>
         <div class="command-right">
             <span id="roleBadge" style="font-size:0.75rem;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:1px;"></span>
+            <a href="admin.html" class="btn-logout manager-only" id="btnAdmin" style="display:none;text-decoration:none;margin-right:8px;">Admin</a>
             <div class="user-menu" id="userMenu">
                 <div class="user-avatar" id="userAvatar">U</div>
                 <span class="user-name" id="userName">User</span>
@@ -60,65 +63,31 @@
         <!-- OVERVIEW SCREEN -->
         <section class="screen active" id="screenDashboard">
             <div class="urgency-strip">
-                <div class="urgency-item critical">
-                    <span class="urgency-count" id="countOverdue">0</span>
-                    <span class="urgency-label">Overdue</span>
-                </div>
-                <div class="urgency-item warning">
-                    <span class="urgency-count" id="countToday">0</span>
-                    <span class="urgency-label">Due Today</span>
-                </div>
-                <div class="urgency-item info">
-                    <span class="urgency-count" id="countActive">0</span>
-                    <span class="urgency-label">Active Shipments</span>
-                </div>
-                <div class="urgency-item success">
-                    <span class="urgency-count" id="countDelivered">0</span>
-                    <span class="urgency-label">Delivered</span>
-                </div>
+                <div class="urgency-item critical"><span class="urgency-count" id="countOverdue">0</span><span class="urgency-label">Overdue</span></div>
+                <div class="urgency-item warning"><span class="urgency-count" id="countToday">0</span><span class="urgency-label">Due Today</span></div>
+                <div class="urgency-item info"><span class="urgency-count" id="countActive">0</span><span class="urgency-label">Active Shipments</span></div>
+                <div class="urgency-item success"><span class="urgency-count" id="countDelivered">0</span><span class="urgency-label">Delivered</span></div>
             </div>
-
             <div class="dash-grid">
-                <!-- Shipment Timeline -->
                 <div class="dash-card card-timeline">
                     <div class="card-header"><h3>Shipment Status</h3></div>
                     <div class="timeline-track" id="timelineTrack">
-                        <div class="timeline-stage">
-                            <div class="stage-dot active"></div>
-                            <div class="stage-info"><span class="stage-count" id="tlConfirmed">0</span><span class="stage-name">Confirmed</span></div>
-                        </div>
+                        <div class="timeline-stage"><div class="stage-dot active"></div><div class="stage-info"><span class="stage-count" id="tlConfirmed">0</span><span class="stage-name">Confirmed</span></div></div>
                         <div class="timeline-connector"></div>
-                        <div class="timeline-stage">
-                            <div class="stage-dot"></div>
-                            <div class="stage-info"><span class="stage-count" id="tlBooked">0</span><span class="stage-name">Booked</span></div>
-                        </div>
+                        <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlBooked">0</span><span class="stage-name">Booked</span></div></div>
                         <div class="timeline-connector"></div>
-                        <div class="timeline-stage">
-                            <div class="stage-dot"></div>
-                            <div class="stage-info"><span class="stage-count" id="tlDeparted">0</span><span class="stage-name">Departed</span></div>
-                        </div>
+                        <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlDeparted">0</span><span class="stage-name">Departed</span></div></div>
                         <div class="timeline-connector"></div>
-                        <div class="timeline-stage">
-                            <div class="stage-dot"></div>
-                            <div class="stage-info"><span class="stage-count" id="tlArrived">0</span><span class="stage-name">Arrived</span></div>
-                        </div>
+                        <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlArrived">0</span><span class="stage-name">Arrived</span></div></div>
                     </div>
                 </div>
-
-                <!-- Urgent Tasks -->
                 <div class="dash-card card-urgent">
                     <div class="card-header"><h3>Urgent Tasks</h3></div>
-                    <div class="task-list-urgent" id="urgentTaskList">
-                        <p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading tasks...</p>
-                    </div>
+                    <div class="task-list-urgent" id="urgentTaskList"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading tasks...</p></div>
                 </div>
-
-                <!-- Recent Activity -->
                 <div class="dash-card card-feed">
                     <div class="card-header"><h3>Recent Activity</h3></div>
-                    <div class="activity-feed" id="activityFeed">
-                        <p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading activity...</p>
-                    </div>
+                    <div class="activity-feed" id="activityFeed"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading activity...</p></div>
                 </div>
             </div>
         </section>
@@ -128,9 +97,7 @@
             <div class="screen-toolbar">
                 <h2>All Shipments</h2>
                 <div class="toolbar-actions">
-                    <select class="filter-select" id="filterStatus">
-                        <option value="">All Statuses</option>
-                    </select>
+                    <select class="filter-select" id="filterStatus"><option value="">All Statuses</option></select>
                     <button class="btn btn-amber" id="btnNewShipment">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         New Shipment
@@ -139,20 +106,8 @@
             </div>
             <div class="shipment-table-wrap">
                 <table class="shipment-table">
-                    <thead>
-                        <tr>
-                            <th>AWB</th>
-                            <th>Customer</th>
-                            <th>Route</th>
-                            <th>Airline</th>
-                            <th>Weight</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="shipmentTableBody">
-                        <tr><td colspan="7"><div class="empty-state"><p>No shipments found.</p></div></td></tr>
-                    </tbody>
+                    <thead><tr><th>AWB</th><th>Customer</th><th>Route</th><th>Airline</th><th>Weight</th><th>Status</th><th class="manager-only-col" style="display:none;">Profit</th><th></th></tr></thead>
+                    <tbody id="shipmentTableBody"><tr><td colspan="8"><div class="empty-state"><p>No shipments found.</p></div></td></tr></tbody>
                 </table>
             </div>
         </section>
@@ -166,9 +121,7 @@
                     Delegate Task
                 </button>
             </div>
-            <div id="taskListContainer">
-                <p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading tasks...</p>
-            </div>
+            <div id="taskListContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading tasks...</p></div>
         </section>
 
         <!-- RATES SCREEN -->
@@ -180,17 +133,19 @@
                     Add Rate
                 </button>
             </div>
-            <div id="ratesContainer">
-                <p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading rates...</p>
-            </div>
+            <div id="ratesContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading rates...</p></div>
+        </section>
+
+        <!-- FLIGHTS SCREEN (Manager Only) -->
+        <section class="screen" id="screenFlights">
+            <div class="screen-toolbar"><h2>Flight Tracking Center</h2></div>
+            <div id="flightsContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading flights...</p></div>
         </section>
 
         <!-- TEAM SCREEN (Manager Only) -->
         <section class="screen" id="screenTeam">
             <div class="screen-toolbar"><h2>Team Overview</h2></div>
-            <div id="teamContainer">
-                <p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading team data...</p>
-            </div>
+            <div id="teamContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading team data...</p></div>
         </section>
 
     </main>
@@ -199,5 +154,6 @@
     <script src="js/app.js"></script>
     <script src="js/shipments.js"></script>
     <script src="js/flights.js"></script>
+    <script src="js/tasks.js"></script>
 </body>
 </html>
