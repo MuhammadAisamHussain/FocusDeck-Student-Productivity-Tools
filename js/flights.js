@@ -10,7 +10,7 @@ var FlightTracker = (function() {
     // ============================================
     // PUT YOUR API KEY HERE
     // ============================================
-    var AVIATIONSTACK_KEY = 'YOUR_API_KEY_HERE';
+    var AVIATIONSTACK_KEY = 'a64c5436fa799b0514c87c5e44653214';
 
     var db = window.supabase;
     var isDirector = false;
