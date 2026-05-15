@@ -8,49 +8,38 @@
     var db = window.supabase;
     var currentUser = null;
     var currentScreen = 'dashboard';
+    var isManager = false;
 
-    // Init
     document.addEventListener('DOMContentLoaded', function() {
         initApp();
     });
 
     async function initApp() {
-        // Check auth
         var userResult = await db.auth.getUser();
         if (!userResult.data || !userResult.data.user) {
             window.location.href = 'login.html';
             return;
         }
-
         currentUser = userResult.data.user;
 
-        // Get profile
         var profileResult = await db.from('profiles').select('*').eq('id', currentUser.id).single();
         if (profileResult.data) {
             currentUser.profile = profileResult.data;
         }
 
-        // Update UI
+        isManager = currentUser.profile && (currentUser.profile.role === 'manager' || currentUser.profile.is_admin);
+
         updateUserUI();
         setupNavigation();
         setupLogout();
+        setupAdminButton();
         loadLogos();
+        setupManagerFeatures();
 
-        // Show/hide manager features
-        var isManager = currentUser.profile && (currentUser.profile.role === 'manager' || currentUser.profile.is_admin);
-        if (isManager) {
-            document.querySelectorAll('.manager-only').forEach(function(el) { el.style.display = 'flex'; });
-            document.getElementById('roleBadge').textContent = 'MANAGER';
-        } else {
-            document.getElementById('roleBadge').textContent = 'EMPLOYEE';
-        }
-
-        // Set flight tracker manager status
         if (typeof FlightTracker !== 'undefined') {
             FlightTracker.setManager(isManager);
         }
 
-        // Load overview
         loadDashboardOverview();
     }
 
@@ -66,6 +55,23 @@
         }
         document.getElementById('userName').textContent = name;
         document.getElementById('userAvatar').textContent = initial;
+    }
+
+    function setupManagerFeatures() {
+        if (isManager) {
+            document.getElementById('roleBadge').textContent = 'MANAGER';
+            document.querySelectorAll('.manager-only').forEach(function(el) { el.style.display = 'flex'; });
+            document.querySelectorAll('.manager-only-col').forEach(function(el) { el.style.display = 'table-cell'; });
+        } else {
+            document.getElementById('roleBadge').textContent = 'EMPLOYEE';
+        }
+    }
+
+    function setupAdminButton() {
+        var btn = document.getElementById('btnAdmin');
+        if (btn && isManager) {
+            btn.style.display = 'inline-flex';
+        }
     }
 
     function setupNavigation() {
@@ -86,11 +92,11 @@
         });
         currentScreen = screenName;
 
-        // Load screen data
         if (screenName === 'dashboard') loadDashboardOverview();
         if (screenName === 'shipments') loadShipmentsPage();
         if (screenName === 'tasks') loadTasks();
         if (screenName === 'rates') loadRates();
+        if (screenName === 'flights') loadFlightsPage();
         if (screenName === 'team') loadTeam();
     }
 
@@ -106,9 +112,7 @@
             var result = await db.from('settings').select('logo_ecw_url, logo_als_url').single();
             if (result.data) {
                 var ecw = document.getElementById('dashLogoEcw');
-                var als = document.getElementById('dashLogoAls');
                 if (ecw && result.data.logo_ecw_url) ecw.src = result.data.logo_ecw_url;
-                if (als && result.data.logo_als_url) als.src = result.data.logo_als_url;
             }
         } catch(e) {}
     }
@@ -116,14 +120,10 @@
     // ============ DASHBOARD OVERVIEW ============
     async function loadDashboardOverview() {
         try {
-            // Get shipment counts by status
             var result = await db.from('shipments').select('status');
             if (result.data) {
                 var counts = {};
-                result.data.forEach(function(s) {
-                    counts[s.status] = (counts[s.status] || 0) + 1;
-                });
-
+                result.data.forEach(function(s) { counts[s.status] = (counts[s.status] || 0) + 1; });
                 document.getElementById('countActive').textContent = (counts.confirmed || 0) + (counts.booked || 0) + (counts.departed || 0);
                 document.getElementById('countDelivered').textContent = counts.delivered || 0;
                 document.getElementById('tlConfirmed').textContent = counts.confirmed || 0;
@@ -132,20 +132,16 @@
                 document.getElementById('tlArrived').textContent = counts.arrived || 0;
             }
 
-            // Get urgent tasks
             var taskResult = await db.from('tasks').select('*, shipments(awb_number, customer_name)').eq('status', 'pending').order('deadline', { ascending: true }).limit(5);
             if (taskResult.data && taskResult.data.length > 0) {
                 var now = new Date();
                 var overdueCount = 0;
                 var todayCount = 0;
                 var html = '';
-
                 taskResult.data.forEach(function(task) {
                     var deadline = new Date(task.deadline);
                     var isOverdue = deadline < now;
-                    if (isOverdue) overdueCount++;
-                    else todayCount++;
-
+                    if (isOverdue) overdueCount++; else todayCount++;
                     html += '<div class="urgent-task ' + (isOverdue ? 'overdue' : 'due-soon') + '">';
                     html += '<div class="task-priority-indicator"></div>';
                     html += '<div class="task-body">';
@@ -154,7 +150,6 @@
                     html += '<span class="task-deadline">' + formatDeadline(task.deadline) + '</span>';
                     html += '</div></div>';
                 });
-
                 document.getElementById('urgentTaskList').innerHTML = html;
                 document.getElementById('countOverdue').textContent = overdueCount;
                 document.getElementById('countToday').textContent = todayCount;
@@ -164,58 +159,107 @@
                 document.getElementById('countToday').textContent = '0';
             }
 
-            // Recent activity
             var activityResult = await db.from('shipments').select('*').order('updated_at', { ascending: false }).limit(6);
             if (activityResult.data && activityResult.data.length > 0) {
                 var feedHtml = '';
                 activityResult.data.forEach(function(s) {
                     var icon = s.status === 'arrived' ? 'arrived' : s.status === 'departed' ? 'departed' : 'created';
-                    feedHtml += '<div class="feed-item">';
-                    feedHtml += '<div class="feed-icon ' + icon + '"></div>';
-                    feedHtml += '<div class="feed-content"><p><strong>' + escapeHtml(s.awb_number || 'Draft') + '</strong> ' + formatStatus(s.status) + '</p>';
-                    feedHtml += '<span class="feed-time">' + timeAgo(s.updated_at) + '</span></div>';
-                    feedHtml += '</div>';
+                    feedHtml += '<div class="feed-item"><div class="feed-icon ' + icon + '"></div><div class="feed-content"><p><strong>' + escapeHtml(s.awb_number || 'Draft') + '</strong> ' + formatStatus(s.status) + '</p><span class="feed-time">' + timeAgo(s.updated_at) + '</span></div></div>';
                 });
                 document.getElementById('activityFeed').innerHTML = feedHtml;
             }
-        } catch(e) {
-            console.error('Dashboard load error:', e);
-        }
+        } catch(e) { console.error('Dashboard load error:', e); }
     }
 
-    // Expose to global scope for ShipmentManager
     window.loadDashboardOverview = loadDashboardOverview;
 
-    // ============ SHIPMENTS (using ShipmentManager) ============
+    // ============ SHIPMENTS ============
     window.loadShipmentsPage = async function() {
         var filterStatus = document.getElementById('filterStatus');
         var filters = {};
         if (filterStatus && filterStatus.value) filters.status = filterStatus.value;
 
-        var shipments = await ShipmentManager.loadShipments(filters);
-        ShipmentManager.renderTable(shipments, 'shipmentTableBody');
+        var result = await db.from('shipments').select('*').order('created_at', { ascending: false });
+        if (filters.status) {
+            result = await db.from('shipments').select('*').eq('status', filters.status).order('created_at', { ascending: false });
+        }
+        var shipments = result.data || [];
 
-        // Populate filter dropdown if empty
+        var tbody = document.getElementById('shipmentTableBody');
+        if (!shipments.length) {
+            tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>No shipments found.</p></div></td></tr>';
+            return;
+        }
+
+        var cols = isManager ? 8 : 7;
+        tbody.innerHTML = shipments.map(function(s) {
+            var profit = (s.revenue || 0) - (s.cost || 0);
+            var profitDisplay = isManager ? '<td class="' + (profit >= 0 ? 'profit-positive' : 'profit-negative') + '">' + (profit ? '$' + profit.toFixed(2) : '—') + '</td>' : '';
+            return '<tr data-id="' + s.id + '">' +
+                '<td><span class="awb-mono">' + escapeHtml(s.awb_number || 'Draft') + '</span></td>' +
+                '<td>' + escapeHtml(s.customer_name) + '</td>' +
+                '<td><div class="route-display"><span class="route-code">' + escapeHtml(s.origin) + '</span><span style="color:var(--text-tertiary);margin:0 6px;">→</span><span class="route-code">' + escapeHtml(s.destination) + '</span></div></td>' +
+                '<td>' + escapeHtml(s.airline || '—') + '</td>' +
+                '<td>' + (s.weight_kg ? s.weight_kg + ' kg' : '—') + '</td>' +
+                '<td><span class="status-badge status-' + s.status + '">' + formatStatus(s.status) + '</span></td>' +
+                profitDisplay +
+                '<td><div class="row-actions">' +
+                    '<button class="row-action-btn advance-status-btn" data-id="' + s.id + '" data-status="' + s.status + '" title="Advance">▶</button>' +
+                    '<button class="row-action-btn edit-shipment-btn" data-id="' + s.id + '" title="Edit" style="margin-left:4px;">✎</button>' +
+                    (isManager ? '<button class="row-action-btn delete-shipment-btn" data-id="' + s.id + '" title="Delete" style="margin-left:4px;color:var(--red);">✕</button>' : '') +
+                '</div></td>' +
+                '</tr>';
+        }).join('');
+
+        bindShipmentRowActions();
+
         if (filterStatus && filterStatus.options.length <= 1) {
-            var statuses = ['draft', 'confirmed', 'booked', 'departed', 'arrived', 'delivered'];
-            statuses.forEach(function(s) {
+            ['draft','confirmed','booked','departed','arrived','delivered'].forEach(function(s) {
                 var opt = document.createElement('option');
                 opt.value = s;
-                opt.textContent = ShipmentManager.formatStatus(s);
+                opt.textContent = formatStatus(s);
                 filterStatus.appendChild(opt);
             });
-            filterStatus.addEventListener('change', function() {
-                window.loadShipmentsPage();
-            });
+            filterStatus.addEventListener('change', function() { window.loadShipmentsPage(); });
         }
     };
 
-    // Initial load if on shipments screen
-    function loadShipments() {
-        if (typeof window.loadShipmentsPage === 'function') {
-            window.loadShipmentsPage();
-        }
+    function bindShipmentRowActions() {
+        document.querySelectorAll('.advance-status-btn').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+                var id = btn.dataset.id;
+                var current = btn.dataset.status;
+                var next = getNextStatus(current);
+                if (!next) return;
+                btn.disabled = true;
+                await db.from('shipments').update({ status: next, updated_at: new Date().toISOString() }).eq('id', id);
+                window.loadShipmentsPage();
+                loadDashboardOverview();
+            });
+        });
+
+        document.querySelectorAll('.edit-shipment-btn').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+                var id = btn.dataset.id;
+                var result = await db.from('shipments').select('*').eq('id', id).single();
+                if (result.data && typeof ShipmentManager !== 'undefined') {
+                    ShipmentManager.openShipmentForm(result.data);
+                }
+            });
+        });
+
+        document.querySelectorAll('.delete-shipment-btn').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+                if (!confirm('Delete this shipment? This cannot be undone.')) return;
+                var id = btn.dataset.id;
+                await db.from('shipments').delete().eq('id', id);
+                window.loadShipmentsPage();
+                loadDashboardOverview();
+            });
+        });
     }
+
+    function loadShipments() { if (typeof window.loadShipmentsPage === 'function') window.loadShipmentsPage(); }
 
     // ============ TASKS ============
     async function loadTasks() {
@@ -257,18 +301,50 @@
                     escapeHtml(r.origin) + ' → ' + escapeHtml(r.destination) + '<br>' +
                     '<span style="color:var(--accent);font-size:1.2rem;font-weight:700;">$' + (r.rate_per_kg_usd || 0).toFixed(2) + '/kg</span>' +
                     '</div>';
-            }).join('') +
-            '</div>';
+            }).join('') + '</div>';
     }
 
-    // ============ TEAM (Manager Only) ============
+    // ============ FLIGHTS (Manager Only) ============
+    window.loadFlightsPage = async function() {
+        if (!isManager) return;
+        var container = document.getElementById('flightsContainer');
+        var result = await db.from('shipments').select('*').not('flight_number', 'is', null).order('updated_at', { ascending: false });
+
+        if (!result.data || result.data.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No flights being tracked. Add flight numbers to shipments.</p>';
+            return;
+        }
+
+        container.innerHTML = result.data.map(function(s) {
+            return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:20px;margin-bottom:12px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">' +
+                    '<div><strong style="font-size:1.1rem;">' + escapeHtml(s.flight_number) + '</strong><br><small style="color:var(--text-tertiary);">' + escapeHtml(s.airline || '') + ' | AWB: ' + escapeHtml(s.awb_number || '') + '</small></div>' +
+                    '<span class="status-badge status-' + s.status + '">' + formatStatus(s.status) + '</span>' +
+                '</div>' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                    '<span style="color:var(--text-secondary);">' + escapeHtml(s.origin) + ' → ' + escapeHtml(s.destination) + '</span>' +
+                    '<button class="btn btn-amber btn-sm track-flight-btn" data-id="' + s.id + '" data-flight="' + escapeHtml(s.flight_number) + '">Track Now</button>' +
+                '</div>' +
+                '</div>';
+        }).join('');
+
+        document.querySelectorAll('.track-flight-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (typeof FlightTracker !== 'undefined') {
+                    FlightTracker.trackFlight(btn.dataset.id, btn.dataset.flight);
+                }
+            });
+        });
+    };
+
+    function loadFlights() { if (typeof window.loadFlightsPage === 'function') window.loadFlightsPage(); }
+
+    // ============ TEAM ============
     async function loadTeam() {
-        var isManager = currentUser.profile && (currentUser.profile.role === 'manager' || currentUser.profile.is_admin);
         if (!isManager) {
             document.getElementById('teamContainer').innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">Access restricted to managers.</p>';
             return;
         }
-
         var result = await db.from('profiles').select('*');
         var container = document.getElementById('teamContainer');
         if (!result.data || result.data.length === 0) {
@@ -284,14 +360,16 @@
     }
 
     // ============ HELPERS ============
-    function formatStatus(s) {
-        return s.charAt(0).toUpperCase() + s.slice(1);
+    function getNextStatus(current) {
+        var flow = ['draft', 'confirmed', 'booked', 'departed', 'arrived', 'delivered'];
+        var idx = flow.indexOf(current);
+        return idx < flow.length - 1 ? flow[idx + 1] : null;
     }
 
+    function formatStatus(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
     function formatDeadline(d) {
-        var deadline = new Date(d);
-        var now = new Date();
-        var diff = deadline - now;
+        var deadline = new Date(d), now = new Date(), diff = deadline - now;
         if (diff < 0) return 'Overdue';
         var hours = Math.floor(diff / 3600000);
         if (hours < 24) return hours + 'h remaining';
@@ -314,33 +392,16 @@
     }
 
     // ============ EVENT HANDLERS ============
-
-    // New shipment button
     document.addEventListener('click', function(e) {
         if (e.target.id === 'btnNewShipment' || e.target.closest('#btnNewShipment')) {
-            if (typeof ShipmentManager !== 'undefined') {
-                ShipmentManager.openShipmentForm();
-            } else {
-                alert('Shipment manager loading...');
-            }
+            if (typeof ShipmentManager !== 'undefined') ShipmentManager.openShipmentForm();
         }
-        if (e.target.id === 'btnNewShipmentEmpty' || e.target.closest('#btnNewShipmentEmpty')) {
-            if (typeof ShipmentManager !== 'undefined') {
-                ShipmentManager.openShipmentForm();
-            } else {
-                alert('Shipment manager loading...');
-            }
+        if (e.target.id === 'btnDelegateTask' || e.target.closest('#btnDelegateTask')) {
+            if (typeof TaskManager !== 'undefined') TaskManager.openDelegateModal();
         }
-    });
-
-    // Delegate task button
-    document.getElementById('btnDelegateTask')?.addEventListener('click', function() {
-        alert('Task delegation form coming soon.');
-    });
-
-    // Add rate button
-    document.getElementById('btnAddRate')?.addEventListener('click', function() {
-        alert('Rate form coming soon.');
+        if (e.target.id === 'btnAddRate' || e.target.closest('#btnAddRate')) {
+            alert('Rate management form coming soon.');
+        }
     });
 
 })();
