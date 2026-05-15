@@ -2,12 +2,13 @@
 // eCargoWorld — Landing Page Scripts
 // ============================================
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async function() {
     initNavbar();
     initMobileMenu();
     initQuoteForm();
     initScrollAnimations();
     await loadDynamicImages();
+    initGlobe();
 });
 
 async function loadDynamicImages() {
@@ -59,7 +60,6 @@ function initQuoteForm() {
 
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-
         var submitBtn = form.querySelector('button[type="submit"]');
         var originalText = submitBtn.textContent;
         submitBtn.textContent = 'Sending...';
@@ -80,21 +80,12 @@ function initQuoteForm() {
             submitted_at: new Date().toISOString()
         };
 
-        // Try to send via Supabase Edge Function
-        var sent = await sendQuoteEmail(formData);
-
-        if (sent) {
+        var saved = await saveQuoteToDatabase(formData);
+        if (saved) {
             showToast('Quote request submitted! We will get back to you within 24 hours.', 'success');
             form.reset();
         } else {
-            // Fallback: store in database
-            var saved = await saveQuoteToDatabase(formData);
-            if (saved) {
-                showToast('Quote request received! We will get back to you within 24 hours.', 'success');
-                form.reset();
-            } else {
-                showToast('Could not submit request. Please email us at info@ecargopk.com', 'error');
-            }
+            showToast('Could not submit. Please email us at info@ecargopk.com', 'error');
         }
 
         submitBtn.textContent = originalText;
@@ -102,47 +93,21 @@ function initQuoteForm() {
     });
 }
 
-async function sendQuoteEmail(formData) {
-    try {
-        // Try Supabase Edge Function
-        var response = await fetch('https://zijycqosgkycwptofhqs.supabase.co/functions/v1/send-quote-email', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + window.supabase.supabaseKey
-            },
-            body: JSON.stringify(formData)
-        });
-        return response.ok;
-    } catch (e) {
-        console.log('Edge function not available, using database fallback');
-        return false;
-    }
-}
-
 async function saveQuoteToDatabase(formData) {
     try {
         if (typeof supabase !== 'undefined' && supabase.from) {
             var result = await supabase.from('quote_requests').insert({
-                name: formData.name,
-                company: formData.company,
-                phone: formData.phone,
-                email: formData.email,
-                origin: formData.origin,
-                destination: formData.destination,
-                weight: formData.weight,
-                volume: formData.volume,
-                freight_terms: formData.freight_terms,
-                delivery_terms: formData.delivery_terms,
-                message: formData.message,
-                created_at: new Date().toISOString()
+                name: formData.name, company: formData.company,
+                phone: formData.phone, email: formData.email,
+                origin: formData.origin, destination: formData.destination,
+                weight: formData.weight, volume: formData.volume,
+                freight_terms: formData.freight_terms, delivery_terms: formData.delivery_terms,
+                message: formData.message, created_at: new Date().toISOString()
             });
             return !result.error;
         }
         return false;
-    } catch (e) {
-        return false;
-    }
+    } catch (e) { return false; }
 }
 
 function showToast(message, type) {
@@ -164,6 +129,52 @@ function initScrollAnimations() {
         el.style.opacity = '0'; el.style.transform = 'translateY(30px)'; el.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
         observer.observe(el);
     });
+}
+
+function initGlobe() {
+    var canvas = document.getElementById('heroGlobe');
+    if (!canvas || typeof Globe === 'undefined') return;
+
+    var routes = [
+        { from: [31.52, 74.40], to: [25.20, 55.27] },
+        { from: [24.86, 67.00], to: [25.25, 55.36] },
+        { from: [33.68, 73.04], to: [21.54, 39.17] },
+        { from: [31.52, 74.40], to: [51.47, -0.46] },
+        { from: [24.86, 67.00], to: [41.00, 28.97] }
+    ];
+
+    var airports = [
+        { lat: 31.52, lng: 74.40, name: 'LHE' },
+        { lat: 24.86, lng: 67.00, name: 'KHI' },
+        { lat: 33.68, lng: 73.04, name: 'ISB' },
+        { lat: 25.20, lng: 55.27, name: 'DXB' },
+        { lat: 25.25, lng: 55.36, name: 'DOH' },
+        { lat: 21.54, lng: 39.17, name: 'JED' },
+        { lat: 51.47, lng: -0.46, name: 'LHR' },
+        { lat: 41.00, lng: 28.97, name: 'IST' }
+    ];
+
+    var globe = Globe()
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+        .pointsData(airports)
+        .pointLat('lat')
+        .pointLng('lng')
+        .pointColor(function() { return '#F5A623'; })
+        .pointRadius(0.25)
+        .pointLabel(function(d) { return d.name; })
+        .arcsData(routes)
+        .arcColor(function() { return '#F5A623'; })
+        .arcStroke(0.6)
+        .arcDashLength(0.4)
+        .arcDashGap(0.15)
+        .arcDashAnimateTime(3000)
+        .arcAltitude(0.3)
+        (canvas);
+
+    globe.controls().autoRotate = true;
+    globe.controls().autoRotateSpeed = 0.5;
 }
 
 var animStyles = document.createElement('style');
