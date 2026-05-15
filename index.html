@@ -10,28 +10,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/main.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="js/supabase.js"></script>
 </head>
 <body>
 
+    <!-- ============ NAVBAR ============ -->
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <div class="nav-logos">
                 <img src="" alt="eCargoWorld" class="logo logo-ecw dynamic-image" id="navLogoEcw" data-slot="logo_ecw_url">
-                <span class="logo-divider"></span>
-                <img src="" alt="ALS" class="logo logo-als dynamic-image" id="navLogoAls" data-slot="logo_als_url">
             </div>
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#services">Services</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#why-us">Why Us</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="#contact">Quote</a></li>
+                <li><a href="track.html" class="nav-track">Track Shipment</a></li>
                 <li><a href="login.html" class="nav-cta">Login</a></li>
             </ul>
             <button class="mobile-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
         </div>
     </nav>
 
+    <!-- ============ HERO ============ -->
     <section class="hero" id="home">
         <div class="hero-bg-image dynamic-bg" id="heroBgImage" data-slot="hero_image_url"></div>
         <div class="hero-bg-overlay"></div>
@@ -61,6 +63,7 @@
         <div class="hero-arc"></div>
     </section>
 
+    <!-- ============ WHY CHOOSE US ============ -->
     <section class="why-us-section" id="why-us">
         <div class="section-container">
             <div class="section-header">
@@ -69,37 +72,26 @@
             </div>
             <div class="why-grid">
                 <div class="why-card">
-                    <div class="why-icon-wrap">
-                        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                    </div>
-                    <h3>Customizable Solutions</h3>
-                    <p>Tailored logistics for every industry, from small shipments to complex project cargo.</p>
+                    <div class="why-icon-wrap"><svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+                    <h3>Customizable Solutions</h3><p>Tailored logistics for every industry, from small shipments to complex project cargo.</p>
                 </div>
                 <div class="why-card">
-                    <div class="why-icon-wrap">
-                        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    </div>
-                    <h3>Advanced Tracking</h3>
-                    <p>Real-time shipment monitoring and full visibility every step of the way.</p>
+                    <div class="why-icon-wrap"><svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                    <h3>Advanced Tracking</h3><p>Real-time shipment monitoring and full visibility every step of the way.</p>
                 </div>
                 <div class="why-card">
-                    <div class="why-icon-wrap">
-                        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-                    </div>
-                    <h3>Reliable & Secure</h3>
-                    <p>An experienced team committed to ensuring the safe handling and transportation of your goods.</p>
+                    <div class="why-icon-wrap"><svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+                    <h3>Reliable & Secure</h3><p>An experienced team committed to ensuring the safe handling and transportation of your goods.</p>
                 </div>
                 <div class="why-card">
-                    <div class="why-icon-wrap">
-                        <svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-                    </div>
-                    <h3>Competitive Pricing</h3>
-                    <p>Cost-effective shipping and logistics services designed to support your bottom line.</p>
+                    <div class="why-icon-wrap"><svg class="why-icon" viewBox="0 0 24 24" fill="none" stroke="#F5A623" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+                    <h3>Competitive Pricing</h3><p>Cost-effective shipping and logistics services designed to support your bottom line.</p>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- ============ ABOUT ============ -->
     <section class="about-section" id="about">
         <div class="about-bg-image dynamic-bg" id="aboutBgImage" data-slot="why_us_image_url"></div>
         <div class="section-container">
@@ -107,98 +99,35 @@
                 <span class="section-tag">About Us</span>
                 <h2>Your Global <span class="text-amber">Logistics Partner</span></h2>
                 <p class="about-intro">Founded in 2019, ECARGOWORLD is a Pakistan-based global logistics and freight forwarding company committed to simplifying supply chains for businesses of all sizes.</p>
-                <p>We offer comprehensive, cost-effective, and reliable logistics solutions tailored to your specific needs, whether you're shipping across cities or continents. With continuous growth and a strong regional presence, we serve as an essential logistics partner to a wide range of clients, from small businesses to large corporations.</p>
-                <p>Our dedicated team of professionals, deep industry knowledge, and global network allow us to deliver services that go beyond transportation — <strong>we deliver peace of mind.</strong></p>
-                <div class="certifications">
-                    <span class="cert-label">Member of:</span>
-                    <div class="cert-badges">
-                        <span class="cert-badge">IATA</span><span class="cert-badge">PIFFA</span><span class="cert-badge">AAC</span><span class="cert-badge">LCCI</span><span class="cert-badge">NAPLCC</span>
-                    </div>
-                </div>
+                <p>We offer comprehensive, cost-effective, and reliable logistics solutions tailored to your specific needs, whether you're shipping across cities or continents. Our dedicated team of professionals, deep industry knowledge, and global network allow us to deliver services that go beyond transportation — <strong>we deliver peace of mind.</strong></p>
+                <div class="certifications"><span class="cert-label">Member of:</span><div class="cert-badges"><span class="cert-badge">IATA</span><span class="cert-badge">PIFFA</span><span class="cert-badge">AAC</span><span class="cert-badge">LCCI</span><span class="cert-badge">NAPLCC</span></div></div>
             </div>
         </div>
     </section>
 
+    <!-- ============ MISSION & VALUES ============ -->
     <section class="mission-section">
         <div class="section-container">
             <div class="mission-grid">
-                <div class="mission-card">
-                    <span class="section-tag">Our Mission</span>
-                    <p>To provide smart, efficient, and tailored logistics solutions that align with our clients' needs and budgets, simplifying complexities through deep regional insight, global reach, and operational excellence.</p>
-                </div>
-                <div class="values-card">
-                    <span class="section-tag">Our Values</span>
-                    <div class="values-list">
-                        <div class="value-item"><strong>Integrity</strong><p>We uphold the highest standards in every shipment we handle.</p></div>
-                        <div class="value-item"><strong>Efficiency</strong><p>Timely, optimized delivery is at the heart of what we do.</p></div>
-                        <div class="value-item"><strong>Client-Focus</strong><p>Your success is our mission. We work as an extension of your team.</p></div>
-                        <div class="value-item"><strong>Innovation</strong><p>We embrace modern tools and systems to streamline logistics.</p></div>
-                    </div>
-                </div>
+                <div class="mission-card"><span class="section-tag">Our Mission</span><p>To provide smart, efficient, and tailored logistics solutions that align with our clients' needs and budgets, simplifying complexities through deep regional insight, global reach, and operational excellence.</p></div>
+                <div class="values-card"><span class="section-tag">Our Values</span><div class="values-list"><div class="value-item"><strong>Integrity</strong><p>We uphold the highest standards in every shipment.</p></div><div class="value-item"><strong>Efficiency</strong><p>Timely, optimized delivery is at the heart of what we do.</p></div><div class="value-item"><strong>Client-Focus</strong><p>Your success is our mission.</p></div><div class="value-item"><strong>Innovation</strong><p>We embrace modern tools and systems.</p></div></div></div>
             </div>
         </div>
     </section>
 
+    <!-- ============ SERVICES ============ -->
     <section class="services-section" id="services">
         <div class="section-container">
-            <div class="section-header">
-                <span class="section-tag">What We Do</span>
-                <h2>Our <span class="text-amber">Services</span></h2>
-            </div>
-            <div class="service-block">
-                <div class="service-block-content">
-                    <div class="service-block-image">
-                        <img src="" alt="Ocean Freight" class="dynamic-image" data-slot="service_sea_url">
-                        <div class="service-image-fallback">🚢</div>
-                    </div>
-                    <div class="service-block-text">
-                        <h3>Ocean Freight</h3>
-                        <p class="service-intro">ECARGOWORLD offers comprehensive Ocean Freight services designed to meet diverse shipping needs, from Less-than-Container Loads (LCL) to Full Container Loads (FCL), and specialized cargo like Reefer containers, RO-RO, and Break Bulk.</p>
-                        <p>Whether you're shipping cars, heavy machinery, or commercial goods, our experts ensure your cargo reaches its destination on time and in the most cost-effective and secure manner possible.</p>
-                        <p>With access to a global network of carriers and shipping lines, we deliver consistent, personalized ocean freight services tailored to your requirements.</p>
-                        <ul class="service-feature-list">
-                            <li>LCL & FCL shipments</li>
-                            <li>20', 40', and reefer container handling</li>
-                            <li>RO-RO shipping for vehicles and equipment</li>
-                            <li>Break bulk and out-of-gauge cargo handling</li>
-                            <li>Port-to-port and door-to-door solutions</li>
-                            <li>End-to-end tracking and documentation support</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="service-block reverse">
-                <div class="service-block-content">
-                    <div class="service-block-image">
-                        <img src="" alt="Air Freight" class="dynamic-image" data-slot="service_air_url">
-                        <div class="service-image-fallback">✈️</div>
-                    </div>
-                    <div class="service-block-text">
-                        <h3>Air Freight</h3>
-                        <p class="service-intro">At ECARGOWORLD Pakistan, we offer highly specialized Air Freight (Import & Export) solutions, managed by a team of logistics professionals with over 15 years of industry experience.</p>
-                        <p>Thanks to our strong relationships with major international airlines, we provide our clients with priority space, competitive rates, and flexible transit options, ensuring fast and reliable cargo movement across the globe.</p>
-                        <p>We also expertly handle DDU and DDP shipments to any global destination through our network of trusted logistics partners, offering seamless end-to-end air freight solutions.</p>
-                        <ul class="service-feature-list">
-                            <li>Priority and standard air cargo solutions</li>
-                            <li>DDP/DDU shipment handling</li>
-                            <li>Time-critical and express air freight</li>
-                            <li>Dangerous goods transportation (IATA regulations)</li>
-                            <li>Consolidation and deconsolidation services</li>
-                            <li>Real-time tracking and shipment visibility</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <div class="section-header"><span class="section-tag">What We Do</span><h2>Our <span class="text-amber">Services</span></h2></div>
+            <div class="service-block"><div class="service-block-content"><div class="service-block-image"><img src="" alt="Ocean Freight" class="dynamic-image" data-slot="service_sea_url"><div class="service-image-fallback">🚢</div></div><div class="service-block-text"><h3>Ocean Freight</h3><p class="service-intro">ECARGOWORLD offers comprehensive Ocean Freight services from LCL to FCL, Reefer containers, RO-RO, and Break Bulk.</p><p>Whether you're shipping cars, heavy machinery, or commercial goods, our experts ensure your cargo reaches its destination on time and in the most cost-effective and secure manner possible.</p><ul class="service-feature-list"><li>LCL & FCL shipments</li><li>20', 40', and reefer container handling</li><li>RO-RO shipping for vehicles and equipment</li><li>Break bulk and out-of-gauge cargo handling</li><li>Port-to-port and door-to-door solutions</li><li>End-to-end tracking and documentation support</li></ul></div></div></div>
+            <div class="service-block reverse"><div class="service-block-content"><div class="service-block-image"><img src="" alt="Air Freight" class="dynamic-image" data-slot="service_air_url"><div class="service-image-fallback">✈️</div></div><div class="service-block-text"><h3>Air Freight</h3><p class="service-intro">At ECARGOWORLD Pakistan, we offer highly specialized Air Freight (Import & Export) solutions, managed by a team of logistics professionals with over 15 years of industry experience.</p><p>Thanks to our strong relationships with major international airlines, we provide our clients with priority space, competitive rates, and flexible transit options.</p><ul class="service-feature-list"><li>Priority and standard air cargo solutions</li><li>DDP/DDU shipment handling</li><li>Time-critical and express air freight</li><li>Dangerous goods transportation (IATA regulations)</li><li>Consolidation and deconsolidation services</li><li>Real-time tracking and shipment visibility</li></ul></div></div></div>
         </div>
     </section>
 
+    <!-- ============ SHIPMENT JOURNEY ============ -->
     <section class="journey-section">
         <div class="section-container">
-            <div class="section-header">
-                <span class="section-tag">Support</span>
-                <h2>Understanding Your Shipment's Journey</h2>
-                <p class="journey-subtitle">with ECARGOWORLD</p>
-            </div>
+            <div class="section-header"><span class="section-tag">Support</span><h2>Understanding Your Shipment's Journey</h2><p class="journey-subtitle">with ECARGOWORLD</p></div>
             <p class="journey-intro">At ECARGOWORLD, we aim to make the shipping process transparent and straightforward for our valued clients. This guide illustrates the typical journey of your cargo, from the initial request to the final delivery.</p>
             <div class="journey-steps">
                 <div class="journey-step"><div class="step-number">01</div><h4>Request</h4><p>You submit your shipment request with details</p></div>
@@ -214,58 +143,64 @@
         </div>
     </section>
 
+    <!-- ============ QUOTE FORM ============ -->
     <section class="contact-section" id="contact">
         <div class="section-container">
-            <div class="section-header">
-                <span class="section-tag">Contact Us</span>
-                <h2>Get in <span class="text-amber">Touch!</span></h2>
-                <p>We're here to support your logistics needs, whether it's a freight inquiry, service request, or a custom solution.</p>
-            </div>
+            <div class="section-header"><span class="section-tag">Get In Touch</span><h2>Request a <span class="text-amber">Quote</span></h2><p>Fill out the form and our team will get back to you with the best rates.</p></div>
             <div class="contact-wrapper">
                 <div class="contact-form-wrap">
                     <form class="contact-form" id="quoteForm">
                         <div class="form-row">
-                            <div class="form-group"><label for="name">Name *</label><input type="text" id="name" required placeholder="Your full name"></div>
-                            <div class="form-group"><label for="phone">Phone Number *</label><input type="tel" id="phone" required placeholder="+92 300 0000000"></div>
+                            <div class="form-group"><label for="qfName">Name *</label><input type="text" id="qfName" required placeholder="Your full name"></div>
+                            <div class="form-group"><label for="qfCompany">Company / Shipper Name</label><input type="text" id="qfCompany" placeholder="Your company name"></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group"><label for="email">E-Mail *</label><input type="email" id="email" required placeholder="your@email.com"></div>
-                            <div class="form-group"><label for="date">Preferred Date</label><input type="date" id="date"></div>
+                            <div class="form-group"><label for="qfPhone">Phone Number *</label><input type="tel" id="qfPhone" required placeholder="+92 300 0000000"></div>
+                            <div class="form-group"><label for="qfEmail">Email *</label><input type="email" id="qfEmail" required placeholder="your@email.com"></div>
                         </div>
-                        <div class="form-group"><label for="message">Message *</label><textarea id="message" rows="5" required placeholder="Tell us about your shipment: origin, destination, weight, cargo type..."></textarea></div>
-                        <div class="form-group captcha-group">
-                            <label>Captcha</label>
-                            <div class="captcha-box">
-                                <span class="captcha-text" id="captchaText">7K4M2P</span>
-                                <button type="button" class="captcha-refresh" id="captchaRefresh">Load new</button>
+                        <div class="form-row">
+                            <div class="form-group"><label for="qfOrigin">Origin *</label><input type="text" id="qfOrigin" required placeholder="e.g. Lahore, Pakistan"></div>
+                            <div class="form-group"><label for="qfDestination">Destination *</label><input type="text" id="qfDestination" required placeholder="e.g. Dubai, UAE"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="qfWeight">Gross Weight *</label><input type="text" id="qfWeight" required placeholder="e.g. 500 kg"></div>
+                            <div class="form-group"><label for="qfVolume">Volume *</label><input type="text" id="qfVolume" required placeholder="e.g. 2.5 CBM"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="qfFreightTerms">Freight Terms *</label>
+                                <select id="qfFreightTerms" required>
+                                    <option value="">Select</option>
+                                    <option value="FOB">FOB</option>
+                                    <option value="CNF">CNF</option>
+                                    <option value="EXW">EXW</option>
+                                </select>
                             </div>
-                            <input type="text" id="captchaInput" required placeholder="Enter captcha code">
+                            <div class="form-group">
+                                <label for="qfDeliveryTerms">Delivery Terms *</label>
+                                <select id="qfDeliveryTerms" required>
+                                    <option value="">Select</option>
+                                    <option value="DDP">DDP</option>
+                                    <option value="DAP">DAP</option>
+                                    <option value="Port to Port">Port to Port</option>
+                                </select>
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-amber btn-full">Submit</button>
+                        <div class="form-group"><label for="qfMessage">Additional Details</label><textarea id="qfMessage" rows="4" placeholder="Any special requirements or questions..."></textarea></div>
+                        <button type="submit" class="btn btn-amber btn-full">Submit Quote Request</button>
                     </form>
                 </div>
                 <div class="offices-wrap">
-                    <div class="office-card">
-                        <h4>Lahore Office</h4>
-                        <p class="office-address">Plaza #140/39, 2nd Floor, Block C, Commercial Broadway, DHA Phase 8, Lahore 54792, Pakistan</p>
-                        <div class="office-contact"><span>📞 +92 42 3572 2342-43</span><span>📠 Fax: +92 42 3572 2342</span></div>
-                    </div>
-                    <div class="office-card">
-                        <h4>Karachi Office</h4>
-                        <p class="office-address">Office No. 408, 4th Floor, Muhammad Mustafa Trade Center, P.E.C.H.S. Society, Tariq Road, Karachi, Pakistan</p>
-                        <div class="office-contact"><span>📞 +92 300 8217526</span><span>📞 +92 300 9207988</span></div>
-                    </div>
-                    <div class="office-card">
-                        <h4>Peshawar Office</h4>
-                        <p class="office-address">Office B-2, NWR Plaza Khyber, Super Market, Peshawar, Pakistan</p>
-                        <div class="office-contact"><span>📞 +92 335 9762823</span></div>
-                    </div>
+                    <div class="office-card"><h4>Lahore Office</h4><p class="office-address">Plaza #140/39, 2nd Floor, Block C, Commercial Broadway, DHA Phase 8, Lahore 54792, Pakistan</p><div class="office-contact"><span>📞 +92 42 3572 2342-43</span><span>📠 Fax: +92 42 3572 2342</span></div></div>
+                    <div class="office-card"><h4>Karachi Office</h4><p class="office-address">BS-29, Merchant Navy Co-operation Housing Society, Scheme 33, Karachi - Pakistan</p><div class="office-contact"><span>📞 021-33488854</span><span>📞 +92 300 9207988</span></div></div>
+                    <div class="office-card"><h4>Peshawar Office</h4><p class="office-address">Office B-2, NWR Plaza Khyber, Super Market, Peshawar, Pakistan</p><div class="office-contact"><span>📞 +92 335 9762823</span></div></div>
                     <div class="office-email"><strong>Email:</strong> info@ecargopk.com</div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- ============ FOOTER ============ -->
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-top">
@@ -276,18 +211,9 @@
                     </div>
                     <p>Your Global Logistics Partner — moving business forward since 2019.</p>
                 </div>
-                <div class="footer-links">
-                    <h4>Quick Links</h4>
-                    <ul><li><a href="#home">Home</a></li><li><a href="#services">Services</a></li><li><a href="#about">About</a></li><li><a href="#why-us">Why Us</a></li><li><a href="#contact">Contact</a></li></ul>
-                </div>
-                <div class="footer-links">
-                    <h4>Services</h4>
-                    <ul><li>Ocean Freight</li><li>Air Freight</li><li>DDP/DDU Shipments</li><li>Project Cargo</li></ul>
-                </div>
-                <div class="footer-links">
-                    <h4>Offices</h4>
-                    <ul><li>Lahore</li><li>Karachi</li><li>Peshawar</li></ul>
-                </div>
+                <div class="footer-links"><h4>Quick Links</h4><ul><li><a href="#home">Home</a></li><li><a href="#services">Services</a></li><li><a href="#about">About</a></li><li><a href="#why-us">Why Us</a></li><li><a href="#contact">Quote</a></li><li><a href="track.html">Track Shipment</a></li></ul></div>
+                <div class="footer-links"><h4>Services</h4><ul><li>Ocean Freight</li><li>Air Freight</li><li>DDP/DDU Shipments</li><li>Project Cargo</li></ul></div>
+                <div class="footer-links"><h4>Offices</h4><ul><li>Lahore</li><li>Karachi</li><li>Peshawar</li></ul></div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 eCargoWorld. All rights reserved. | ecargopk.com</p>
@@ -297,7 +223,6 @@
         </div>
     </footer>
 
-    <script src="js/supabase.js" type="module"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
