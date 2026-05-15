@@ -1,6 +1,7 @@
 // ============================================
 // eCargoWorld — Flight Tracker
 // AviationStack API Integration
+// Director Only
 // ============================================
 
 var FlightTracker = (function() {
@@ -9,24 +10,24 @@ var FlightTracker = (function() {
     // ============================================
     // PUT YOUR API KEY HERE
     // ============================================
-    var AVIATIONSTACK_KEY = 'a64c5436fa799b0514c87c5e44653214';
+    var AVIATIONSTACK_KEY = 'YOUR_API_KEY_HERE';
 
     var db = window.supabase;
-    var isManager = false;
+    var isDirector = false;
 
-    function setManager(status) {
-        isManager = status;
+    function setDirector(status) {
+        isDirector = status;
     }
 
-    // Track a flight — only managers can trigger API calls
+    // Track a flight — only directors can trigger API calls
     async function trackFlight(shipmentId, flightNumber) {
         if (!flightNumber) {
             alert('No flight number set for this shipment. Please add a flight number first.');
             return;
         }
 
-        if (!isManager) {
-            alert('Flight tracking is only available to managers. Please contact your manager to track this flight.');
+        if (!isDirector) {
+            alert('Flight tracking is only available to the Director. Please contact the Director to track this flight.');
             return;
         }
 
@@ -89,8 +90,9 @@ var FlightTracker = (function() {
         }
 
         // Refresh pages
-        if (typeof loadShipmentsPage === 'function') loadShipmentsPage();
-        if (typeof loadDashboardOverview === 'function') loadDashboardOverview();
+        if (typeof window.loadFlightsPage === 'function') window.loadFlightsPage();
+        if (typeof window.loadShipmentsPage === 'function') window.loadShipmentsPage();
+        if (typeof window.loadDashboardOverview === 'function') window.loadDashboardOverview();
     }
 
     async function fetchFlightStatus(flightNumber) {
@@ -166,7 +168,7 @@ var FlightTracker = (function() {
         }
 
         content += '<div style="text-align:center;padding:16px;border-top:1px solid var(--border-subtle);">' +
-            '<button id="closeTrackingModal" style="padding:10px 24px;background:var(--accent);color:#1A2E4A;border:none;border-radius:var(--radius);cursor:pointer;font-weight:600;font-family:inherit;">Close</button>' +
+            '<button id="closeTrackingModal" style="padding:10px 24px;background:var(--accent);color:#1A2E4A;border:none;border-radius:var(--radius);cursor:pointer;font-weight:600;font-family:Inter,sans-serif;">Close</button>' +
             '</div>';
 
         modal.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">' + content + '</div>';
@@ -191,7 +193,7 @@ var FlightTracker = (function() {
 
     return {
         trackFlight: trackFlight,
-        setManager: setManager
+        setDirector: setDirector
     };
 
 })();
