@@ -1,205 +1,190 @@
 // ============================================
-// ALS eCargoWorld — Task Engine
+// eCargoWorld — Task Manager & Delegation
 // ============================================
 
-class TaskEngine {
-    constructor(store) {
-        this.store = store;
-    }
+var TaskManager = (function() {
+    'use strict';
+    var db = window.supabase;
 
-    async load() {
-        try {
-            const tasks = await this.store.getTasks();
-            this.renderBoard(tasks);
-            this.bindTaskActions();
-        } catch (error) {
-            console.error('Failed to load tasks:', error);
-        }
-    }
+    // Predefined task templates
+    var taskTemplates = [
+        { name: 'Send email to customer', category: 'communication' },
+        { name: 'Call customer for shipment update', category: 'communication' },
+        { name: 'Send flight details to customer', category: 'communication' },
+        { name: 'Send departure confirmation', category: 'communication' },
+        { name: 'Send arrival notice', category: 'communication' },
+        { name: 'Give documents to customs broker', category: 'documents' },
+        { name: 'Prepare shipping documents', category: 'documents' },
+        { name: 'Verify shipment details', category: 'verification' },
+        { name: 'Update AWB in system', category: 'data' },
+        { name: 'Collect payment from customer', category: 'finance' },
+        { name: 'Coordinate with warehouse', category: 'operations' },
+        { name: 'Arrange pickup from shipper', category: 'operations' },
+        { name: 'Track flight status', category: 'operations' },
+        { name: 'Custom task', category: 'custom' }
+    ];
 
-    renderBoard(tasks) {
-        const columns = {
-            overdue: document.getElementById('overdueTasks'),
-            today: document.getElementById('todayTasks'),
-            upcoming: document.getElementById('upcomingTasks'),
-            done: document.getElementById('doneTasks')
-        };
-
-        // Clear all columns
-        Object.values(columns).forEach(col => {
-            if (col) col.innerHTML = '';
-        });
-
-        if (!tasks.length) {
-            if (columns.overdue) {
-                columns.overdue.innerHTML = '<div class="empty-column">No tasks yet</div>';
-            }
-            return;
-        }
-
-        const now = new Date();
-        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-
-        const categorized = {
-            overdue: [],
-            today: [],
-            upcoming: [],
-            done: []
-        };
-
-        tasks.forEach(task => {
-            if (task.status === 'completed') {
-                categorized.done.push(task);
-            } else {
-                const deadline = new Date(task.deadline);
-                if (deadline < now) {
-                    categorized.overdue.push(task);
-                } else if (deadline <= todayEnd) {
-                    categorized.today.push(task);
-                } else {
-                    categorized.upcoming.push(task);
-                }
-            }
-        });
-
-        // Update column counts
-        document.querySelectorAll('.column-count').forEach(countEl => {
-            const column = countEl.closest('.task-column');
-            if (!column) return;
-            const status = column.dataset.status;
-            if (categorized[status]) {
-                countEl.textContent = categorized[status].length;
-            }
-        });
-
-        // Render each column
-        Object.entries(categorized).forEach(([status, taskList]) => {
-            const col = columns[status];
-            if (!col) return;
-
-            if (!taskList.length) {
-                col.innerHTML = '<div class="empty-column">No tasks</div>';
-                return;
-            }
-
-            col.innerHTML = taskList.map(task => this.renderTaskCard(task)).join('');
-        });
-    }
-
-    renderTaskCard(task) {
-        const isOverdue = task.status !== 'completed' && new Date(task.deadline) < new Date();
-        const cardClass = task.status === 'completed' ? 'task-card completed' : 
-                          isOverdue ? 'task-card overdue' : 'task-card';
-        
-        const priorityIndicator = task.priority === 'critical' ? 'priority-critical' :
-                                   task.priority === 'high' ? 'priority-high' :
-                                   'priority-normal';
-
-        const shipmentInfo = task.shipments || {};
-
-        return `
-            <div class="task-card ${cardClass}" data-id="${task.id}">
-                <div class="task-priority ${priorityIndicator}"></div>
-                <div class="task-card-body">
-                    <div class="task-card-header">
-                        <span class="task-type">${this.formatTaskType(task.task_type)}</span>
-                        ${task.status !== 'completed' ? 
-                            `<button class="task-complete-btn" data-id="${task.id}" title="Mark complete">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <polyline points="20 6 9 17 4 12"/>
-                                </svg>
-                            </button>` : ''
-                        }
-                    </div>
-                    <p class="task-name">${this.escapeHtml(task.name)}</p>
-                    ${shipmentInfo.awb_number ? 
-                        `<span class="task-awb">AWB: ${this.escapeHtml(shipmentInfo.awb_number)}</span>` : ''}
-                    ${shipmentInfo.customer_name ? 
-                        `<span class="task-customer">${this.escapeHtml(shipmentInfo.customer_name)}</span>` : ''}
-                    <div class="task-meta">
-                        <span class="task-deadline ${isOverdue ? 'deadline-overdue' : ''}">
-                            ${this.formatDeadline(task.deadline)}
-                        </span>
-                        ${task.assigned_to ? 
-                            `<span class="task-assignee">Assigned to: ${this.escapeHtml(task.assigned_to_name || 'Employee')}</span>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    bindTaskActions() {
-        // Complete task
-        document.querySelectorAll('.task-complete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const taskId = btn.dataset.id;
-                try {
-                    await this.store.updateTask(taskId, { 
-                        status: 'completed',
-                        completed_at: new Date().toISOString()
-                    });
-                    if (window.app) {
-                        window.app.showToast('Task marked as complete');
-                    }
-                    this.load();
-                } catch (error) {
-                    console.error('Failed to complete task:', error);
-                }
-            });
-        });
-
-        // Click card to expand
-        document.querySelectorAll('.task-card').forEach(card => {
-            card.addEventListener('click', () => {
-                card.classList.toggle('expanded');
-            });
-        });
-    }
-
-    async delegateTask(taskData) {
-        return await this.store.createTask(taskData);
-    }
-
-    formatTaskType(type) {
-        const types = {
-            verify_details: 'Verification',
-            booking_confirmed: 'Customer Notice',
-            departure_notice: 'Departure Notice',
-            arrival_notice: 'Arrival Notice',
-            delay_notification: 'Delay Alert',
-            renew_rate: 'Rate Renewal',
-            custom: 'Manual Task'
-        };
-        return types[type] || type;
-    }
-
-    formatDeadline(deadlineStr) {
-        const deadline = new Date(deadlineStr);
-        const now = new Date();
-        const diff = deadline - now;
-        
-        if (diff < 0) {
-            const hours = Math.abs(Math.floor(diff / 3600000));
-            const minutes = Math.abs(Math.floor((diff % 3600000) / 60000));
-            if (hours > 24) return `Overdue by ${Math.floor(hours/24)} days`;
-            if (hours > 0) return `Overdue by ${hours}h ${minutes}m`;
-            return `Overdue by ${minutes}m`;
-        }
-        
-        const hours = Math.floor(diff / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        if (hours > 24) return `Due in ${Math.floor(hours/24)} days`;
-        if (hours > 0) return `Due in ${hours}h ${minutes}m`;
-        return `Due in ${minutes}m`;
-    }
-
-    escapeHtml(text) {
+    function escapeHtml(text) {
         if (!text) return '';
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-}
 
-export { TaskEngine };
+    function formatDeadline(d) {
+        var deadline = new Date(d);
+        var now = new Date();
+        var diff = deadline - now;
+        if (diff < 0) return 'Overdue';
+        var hours = Math.floor(diff / 3600000);
+        if (hours < 24) return hours + 'h remaining';
+        return Math.floor(hours / 24) + 'd remaining';
+    }
+
+    // Open delegation modal
+    function openDelegateModal() {
+        var existing = document.getElementById('delegateModal');
+        if (existing) existing.remove();
+
+        var modal = document.createElement('div');
+        modal.id = 'delegateModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;';
+
+        var taskOptions = taskTemplates.map(function(t) {
+            return '<option value="' + escapeHtml(t.name) + '">' + escapeHtml(t.name) + '</option>';
+        }).join('');
+
+        modal.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);padding:28px;width:90%;max-width:550px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">' +
+                '<h3 style="font-size:1.1rem;font-weight:700;">Delegate Task</h3>' +
+                '<button id="closeDelegateModal" style="background:none;border:none;color:var(--text-tertiary);font-size:1.5rem;cursor:pointer;">&times;</button>' +
+            '</div>' +
+            '<form id="delegateForm">' +
+                '<div style="margin-bottom:16px;">' +
+                    '<label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Task Type</label>' +
+                    '<select id="dtTaskType" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;font-size:0.9rem;">' + taskOptions + '</select>' +
+                '</div>' +
+                '<div style="margin-bottom:16px;">' +
+                    '<label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Custom Task Name (optional)</label>' +
+                    '<input type="text" id="dtCustomName" placeholder="Or type a custom task..." style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;">' +
+                '</div>' +
+                '<div style="margin-bottom:16px;">' +
+                    '<label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Assign To *</label>' +
+                    '<select id="dtAssignee" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"><option value="">Select employee...</option></select>' +
+                '</div>' +
+                '<div style="margin-bottom:16px;">' +
+                    '<label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Linked Shipment (optional)</label>' +
+                    '<select id="dtShipment" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"><option value="">None</option></select>' +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">' +
+                    '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Deadline *</label><input type="datetime-local" id="dtDeadline" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
+                    '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Priority</label><select id="dtPriority" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option><option value="low">Low</option></select></div>' +
+                '</div>' +
+                '<div style="display:flex;justify-content:flex-end;gap:10px;">' +
+                    '<button type="button" id="cancelDelegateBtn" style="padding:10px 20px;background:transparent;border:1px solid var(--border-medium);color:var(--text-primary);border-radius:var(--radius);cursor:pointer;font-family:inherit;">Cancel</button>' +
+                    '<button type="submit" style="padding:10px 20px;background:var(--accent);color:#1A2E4A;border:none;border-radius:var(--radius);cursor:pointer;font-weight:600;font-family:inherit;">Assign Task</button>' +
+                '</div>' +
+            '</form>' +
+        '</div>';
+
+        document.body.appendChild(modal);
+
+        // Load employees
+        loadEmployeesIntoSelect('dtAssignee');
+        // Load shipments
+        loadShipmentsIntoSelect('dtShipment');
+        // Set default deadline (tomorrow)
+        var tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('dtDeadline').value = tomorrow.toISOString().slice(0, 16);
+
+        // Close handlers
+        document.getElementById('closeDelegateModal').addEventListener('click', function() { modal.remove(); });
+        document.getElementById('cancelDelegateBtn').addEventListener('click', function() { modal.remove(); });
+        modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+
+        // Submit
+        document.getElementById('delegateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Assigning...';
+
+            var customName = document.getElementById('dtCustomName').value.trim();
+            var taskName = customName || document.getElementById('dtTaskType').value;
+            var assigneeId = document.getElementById('dtAssignee').value;
+            var shipmentId = document.getElementById('dtShipment').value || null;
+            var deadline = document.getElementById('dtDeadline').value;
+            var priority = document.getElementById('dtPriority').value;
+
+            try {
+                var result = await db.from('tasks').insert({
+                    name: taskName,
+                    task_type: 'delegated',
+                    shipment_id: shipmentId,
+                    assigned_to: assigneeId,
+                    deadline: new Date(deadline).toISOString(),
+                    status: 'pending',
+                    priority: priority,
+                    created_by: 'manager',
+                    created_at: new Date().toISOString()
+                });
+
+                if (result.error) throw result.error;
+
+                modal.remove();
+                if (typeof loadTasks === 'function') loadTasks();
+                if (typeof loadDashboardOverview === 'function') loadDashboardOverview();
+                showToast('Task assigned successfully!');
+            } catch(err) {
+                alert('Error: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Assign Task';
+            }
+        });
+    }
+
+    async function loadEmployeesIntoSelect(selectId) {
+        var select = document.getElementById(selectId);
+        if (!select) return;
+        var result = await db.from('profiles').select('id, full_name').eq('role', 'employee');
+        if (result.data) {
+            result.data.forEach(function(emp) {
+                var opt = document.createElement('option');
+                opt.value = emp.id;
+                opt.textContent = emp.full_name || 'Employee';
+                select.appendChild(opt);
+            });
+        }
+    }
+
+    async function loadShipmentsIntoSelect(selectId) {
+        var select = document.getElementById(selectId);
+        if (!select) return;
+        var result = await db.from('shipments').select('id, awb_number, customer_name').order('created_at', { ascending: false }).limit(20);
+        if (result.data) {
+            result.data.forEach(function(s) {
+                var opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = (s.awb_number || 'Draft') + ' - ' + (s.customer_name || 'Unknown');
+                select.appendChild(opt);
+            });
+        }
+    }
+
+    function showToast(message, type) {
+        type = type || 'success';
+        var toast = document.createElement('div');
+        toast.textContent = message;
+        toast.style.cssText = 'position:fixed;bottom:30px;right:30px;background:' + (type === 'error' ? '#ef4444' : '#22c55e') + ';color:white;padding:14px 24px;border-radius:10px;font-family:Inter,sans-serif;font-weight:500;font-size:0.9rem;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.4);animation:toastIn 0.3s ease-out;';
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.style.animation = 'toastOut 0.3s ease-in'; setTimeout(function() { toast.remove(); }, 300); }, 3500);
+    }
+
+    return {
+        openDelegateModal: openDelegateModal,
+        taskTemplates: taskTemplates,
+        formatDeadline: formatDeadline
+    };
+
+})();
