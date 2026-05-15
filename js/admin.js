@@ -177,7 +177,7 @@
                     }
                 }
 
-                // Upload images
+                // Upload images with cache-busting timestamps
                 for (var entry of this.pendingUploads.entries()) {
                     var slot = entry[0];
                     var file = entry[1];
@@ -186,11 +186,13 @@
                         updates[slot + '_url'] = '';
                     } else if (file instanceof File) {
                         var fileExt = file.name.split('.').pop();
-                        var filePath = slot + '.' + fileExt;
+                        // Add timestamp to break cache
+                        var timestamp = Date.now();
+                        var filePath = slot + '_' + timestamp + '.' + fileExt;
                         
                         var uploadResult = await this.db.storage
                             .from('assets')
-                            .upload(filePath, file, { cacheControl: '3600', upsert: true });
+                            .upload(filePath, file, { cacheControl: '0', upsert: true });
 
                         if (uploadResult.error) throw uploadResult.error;
 
@@ -287,7 +289,7 @@
                     }
                 }
 
-                // Load images
+                // Load images with cache-busting
                 var imageSlots = [
                     'logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 
                     'service_air', 'service_sea',
@@ -297,9 +299,11 @@
                 imageSlots.forEach(function(slot) {
                     var url = settings[slot + '_url'];
                     if (url) {
+                        // Add cache-busting param
+                        var cacheBuster = url + '?t=' + Date.now();
                         var preview = document.getElementById(self.getPreviewId(slot));
                         var placeholder = document.getElementById(self.getPlaceholderId(slot));
-                        if (preview) { preview.src = url; preview.style.display = 'block'; }
+                        if (preview) { preview.src = cacheBuster; preview.style.display = 'block'; }
                         if (placeholder) placeholder.style.display = 'none';
                         var card = preview ? preview.closest('.image-upload-card') : null;
                         if (card) { card.classList.add('has-image'); var rm = card.querySelector('.remove-image'); if (rm) rm.style.display = 'inline-flex'; }
