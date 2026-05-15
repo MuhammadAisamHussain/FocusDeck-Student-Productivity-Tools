@@ -9,6 +9,7 @@
     var currentUser = null;
     var currentScreen = 'dashboard';
     var isManager = false;
+    var isDirector = false;
 
     document.addEventListener('DOMContentLoaded', function() {
         initApp();
@@ -27,17 +28,18 @@
             currentUser.profile = profileResult.data;
         }
 
-        isManager = currentUser.profile && (currentUser.profile.role === 'manager' || currentUser.profile.is_admin);
+        isManager = currentUser.profile && (currentUser.profile.role === 'manager' || currentUser.profile.role === 'director' || currentUser.profile.is_admin);
+        isDirector = currentUser.profile && (currentUser.profile.role === 'director' || currentUser.profile.is_admin);
 
         updateUserUI();
         setupNavigation();
         setupLogout();
         setupAdminButton();
         loadLogos();
-        setupManagerFeatures();
+        setupRoleFeatures();
 
         if (typeof FlightTracker !== 'undefined') {
-            FlightTracker.setManager(isManager);
+            FlightTracker.setDirector(isDirector);
         }
 
         loadDashboardOverview();
@@ -57,10 +59,16 @@
         document.getElementById('userAvatar').textContent = initial;
     }
 
-    function setupManagerFeatures() {
-        if (isManager) {
+    function setupRoleFeatures() {
+        if (isDirector) {
+            document.getElementById('roleBadge').textContent = 'DIRECTOR';
+            document.querySelectorAll('.manager-only').forEach(function(el) { el.style.display = 'flex'; });
+            document.querySelectorAll('.director-only').forEach(function(el) { el.style.display = 'flex'; });
+            document.querySelectorAll('.manager-only-col').forEach(function(el) { el.style.display = 'table-cell'; });
+        } else if (isManager) {
             document.getElementById('roleBadge').textContent = 'MANAGER';
             document.querySelectorAll('.manager-only').forEach(function(el) { el.style.display = 'flex'; });
+            document.querySelectorAll('.director-only').forEach(function(el) { el.style.display = 'none'; });
             document.querySelectorAll('.manager-only-col').forEach(function(el) { el.style.display = 'table-cell'; });
         } else {
             document.getElementById('roleBadge').textContent = 'EMPLOYEE';
@@ -69,7 +77,7 @@
 
     function setupAdminButton() {
         var btn = document.getElementById('btnAdmin');
-        if (btn && isManager) {
+        if (btn && (isManager || isDirector)) {
             btn.style.display = 'inline-flex';
         }
     }
@@ -96,8 +104,8 @@
         if (screenName === 'shipments') loadShipmentsPage();
         if (screenName === 'tasks') loadTasks();
         if (screenName === 'rates') loadRates();
-        if (screenName === 'flights') loadFlightsPage();
-        if (screenName === 'team') loadTeam();
+        if (screenName === 'flights' && isDirector) loadFlightsPage();
+        if (screenName === 'team' && isManager) loadTeam();
     }
 
     function setupLogout() {
@@ -179,10 +187,9 @@
         var filters = {};
         if (filterStatus && filterStatus.value) filters.status = filterStatus.value;
 
-        var result = await db.from('shipments').select('*').order('created_at', { ascending: false });
-        if (filters.status) {
-            result = await db.from('shipments').select('*').eq('status', filters.status).order('created_at', { ascending: false });
-        }
+        var query = db.from('shipments').select('*');
+        if (filters.status) query = query.eq('status', filters.status);
+        var result = await query.order('created_at', { ascending: false });
         var shipments = result.data || [];
 
         var tbody = document.getElementById('shipmentTableBody');
@@ -191,10 +198,13 @@
             return;
         }
 
-        var cols = isManager ? 8 : 7;
+        var showProfit = isManager || isDirector;
         tbody.innerHTML = shipments.map(function(s) {
             var profit = (s.revenue || 0) - (s.cost || 0);
-            var profitDisplay = isManager ? '<td class="' + (profit >= 0 ? 'profit-positive' : 'profit-negative') + '">' + (profit ? '$' + profit.toFixed(2) : '—') + '</td>' : '';
+            var profitDisplay = showProfit ? '<td class="' + (profit >= 0 ? 'profit-positive' : 'profit-negative') + '">' + (profit ? '$' + profit.toFixed(2) : '—') + '</td>' : '';
+            var deleteBtn = (isManager || isDirector) ? '<button class="row-action-btn delete-shipment-btn" data-id="' + s.id + '" title="Delete" style="margin-left:4px;color:var(--red);">✕</button>' : '';
+            var editBtn = (isManager || isDirector) ? '<button class="row-action-btn edit-shipment-btn" data-id="' + s.id + '" title="Edit" style="margin-left:4px;">✎</button>' : '';
+            
             return '<tr data-id="' + s.id + '">' +
                 '<td><span class="awb-mono">' + escapeHtml(s.awb_number || 'Draft') + '</span></td>' +
                 '<td>' + escapeHtml(s.customer_name) + '</td>' +
@@ -205,8 +215,7 @@
                 profitDisplay +
                 '<td><div class="row-actions">' +
                     '<button class="row-action-btn advance-status-btn" data-id="' + s.id + '" data-status="' + s.status + '" title="Advance">▶</button>' +
-                    '<button class="row-action-btn edit-shipment-btn" data-id="' + s.id + '" title="Edit" style="margin-left:4px;">✎</button>' +
-                    (isManager ? '<button class="row-action-btn delete-shipment-btn" data-id="' + s.id + '" title="Delete" style="margin-left:4px;color:var(--red);">✕</button>' : '') +
+                    editBtn + deleteBtn +
                 '</div></td>' +
                 '</tr>';
         }).join('');
@@ -304,9 +313,9 @@
             }).join('') + '</div>';
     }
 
-    // ============ FLIGHTS (Manager Only) ============
+    // ============ FLIGHTS (Director Only) ============
     window.loadFlightsPage = async function() {
-        if (!isManager) return;
+        if (!isDirector) return;
         var container = document.getElementById('flightsContainer');
         var result = await db.from('shipments').select('*').not('flight_number', 'is', null).order('updated_at', { ascending: false });
 
@@ -339,10 +348,10 @@
 
     function loadFlights() { if (typeof window.loadFlightsPage === 'function') window.loadFlightsPage(); }
 
-    // ============ TEAM ============
+    // ============ TEAM (Manager+) ============
     async function loadTeam() {
-        if (!isManager) {
-            document.getElementById('teamContainer').innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">Access restricted to managers.</p>';
+        if (!isManager && !isDirector) {
+            document.getElementById('teamContainer').innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">Access restricted.</p>';
             return;
         }
         var result = await db.from('profiles').select('*');
@@ -353,8 +362,8 @@
         }
         container.innerHTML = result.data.map(function(p) {
             return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;">' +
-                '<div style="width:40px;height:40px;border-radius:50%;background:' + (p.is_admin ? 'var(--accent)' : 'var(--bg-tertiary)') + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:' + (p.is_admin ? '#1A2E4A' : 'var(--text-primary)') + ';">' + (p.full_name || '?').charAt(0).toUpperCase() + '</div>' +
-                '<div style="flex:1;"><strong>' + escapeHtml(p.full_name) + '</strong><br><small style="color:var(--text-tertiary);">' + p.role + (p.is_admin ? ' • Admin' : '') + '</small></div>' +
+                '<div style="width:40px;height:40px;border-radius:50%;background:' + (p.is_admin || p.role === 'director' ? 'var(--accent)' : p.role === 'manager' ? 'var(--bg-tertiary)' : 'var(--bg-secondary)') + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:' + (p.is_admin || p.role === 'director' ? '#1A2E4A' : 'var(--text-primary)') + ';">' + (p.full_name || '?').charAt(0).toUpperCase() + '</div>' +
+                '<div style="flex:1;"><strong>' + escapeHtml(p.full_name) + '</strong><br><small style="color:var(--text-tertiary);">' + p.role + '</small></div>' +
                 '</div>';
         }).join('');
     }
@@ -396,11 +405,11 @@
         if (e.target.id === 'btnNewShipment' || e.target.closest('#btnNewShipment')) {
             if (typeof ShipmentManager !== 'undefined') ShipmentManager.openShipmentForm();
         }
-        if (e.target.id === 'btnDelegateTask' || e.target.closest('#btnDelegateTask')) {
+        if ((e.target.id === 'btnDelegateTask' || e.target.closest('#btnDelegateTask')) && isDirector) {
             if (typeof TaskManager !== 'undefined') TaskManager.openDelegateModal();
         }
         if (e.target.id === 'btnAddRate' || e.target.closest('#btnAddRate')) {
-            alert('Rate management form coming soon.');
+            if (isManager || isDirector) alert('Rate management form coming soon.');
         }
     });
 
