@@ -81,8 +81,7 @@ body {
 /* Hero Visual - Globe */
 .hero-visual { 
     display: flex; align-items: center; justify-content: center; 
-    width: 450px; height: 450px; 
-    border-radius: 50%; overflow: hidden;
+    width: 100%; max-width: 500px; aspect-ratio: 1;
     margin: 0 auto;
 }
 #globeViz { width: 100%; height: 100%; }
@@ -202,7 +201,7 @@ body {
     .hero-subtext { max-width: 100%; }
     .hero-ctas { justify-content: center; }
     .hero-stats { justify-content: center; }
-    .hero-visual { width: 350px; height: 350px; }
+    .hero-visual { max-width: 380px; }
     .hero-headline { font-size: 2.5rem; }
     .why-grid { grid-template-columns: repeat(2, 1fr); }
     .service-block-content { grid-template-columns: 1fr; gap: 2rem; }
@@ -219,7 +218,7 @@ body {
     .logo { height: 40px; }
     .why-grid { grid-template-columns: 1fr; }
     .hero-headline { font-size: 2rem; }
-    .hero-visual { width: 280px; height: 280px; }
+    .hero-visual { max-width: 280px; }
     .section-header h2 { font-size: 1.8rem; }
     .journey-steps { flex-direction: column; }
     .journey-arrow { transform: rotate(90deg); padding: 0.5rem 0; }
