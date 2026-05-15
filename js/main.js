@@ -80,56 +80,90 @@ function initQuoteForm() {
     var form = document.getElementById('quoteForm');
     if (!form) return;
 
-    form.addEventListener('submit', async function(e) {
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
         var submitBtn = form.querySelector('button[type="submit"]');
         var originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Sending...';
+        submitBtn.textContent = 'Opening Email...';
         submitBtn.disabled = true;
 
-        var formData = {
-            name: document.getElementById('qfName').value.trim(),
-            company: document.getElementById('qfCompany').value.trim(),
-            phone: document.getElementById('qfPhone').value.trim(),
-            email: document.getElementById('qfEmail').value.trim(),
-            origin: document.getElementById('qfOrigin').value.trim(),
-            destination: document.getElementById('qfDestination').value.trim(),
-            weight: document.getElementById('qfWeight').value.trim(),
-            volume: document.getElementById('qfVolume').value.trim(),
-            freight_terms: document.getElementById('qfFreightTerms').value,
-            delivery_terms: document.getElementById('qfDeliveryTerms').value,
-            message: document.getElementById('qfMessage').value.trim(),
-            submitted_at: new Date().toISOString()
-        };
+        var name = document.getElementById('qfName').value.trim();
+        var company = document.getElementById('qfCompany').value.trim();
+        var phone = document.getElementById('qfPhone').value.trim();
+        var email = document.getElementById('qfEmail').value.trim();
+        var origin = document.getElementById('qfOrigin').value.trim();
+        var destination = document.getElementById('qfDestination').value.trim();
+        var weight = document.getElementById('qfWeight').value.trim();
+        var volume = document.getElementById('qfVolume').value.trim();
+        var freightTerms = document.getElementById('qfFreightTerms').value;
+        var deliveryTerms = document.getElementById('qfDeliveryTerms').value;
+        var message = document.getElementById('qfMessage').value.trim();
 
-        var saved = await saveQuoteToDatabase(formData);
-        if (saved) {
-            showToast('Quote request submitted! We will get back to you within 24 hours.', 'success');
-            form.reset();
-        } else {
-            showToast('Could not submit. Please email us at info@ecargopk.com', 'error');
+        // Save to database silently
+        saveQuoteToDatabase({
+            name: name, company: company, phone: phone, email: email,
+            origin: origin, destination: destination, weight: weight,
+            volume: volume, freight_terms: freightTerms,
+            delivery_terms: deliveryTerms, message: message,
+            submitted_at: new Date().toISOString()
+        });
+
+        // Build mailto: link
+        var subject = 'Quote Request from ' + name + ' - ' + origin + ' to ' + destination;
+        var body = 'QUOTE REQUEST DETAILS\n';
+        body += '══════════════════════\n\n';
+        body += 'CONTACT INFORMATION\n';
+        body += '───────────────────\n';
+        body += 'Name: ' + name + '\n';
+        body += 'Company: ' + (company || 'N/A') + '\n';
+        body += 'Phone: ' + phone + '\n';
+        body += 'Email: ' + email + '\n\n';
+        body += 'SHIPMENT DETAILS\n';
+        body += '────────────────\n';
+        body += 'Origin: ' + origin + '\n';
+        body += 'Destination: ' + destination + '\n';
+        body += 'Gross Weight: ' + weight + '\n';
+        body += 'Volume: ' + volume + '\n';
+        body += 'Freight Terms: ' + freightTerms + '\n';
+        body += 'Delivery Terms: ' + deliveryTerms + '\n\n';
+        if (message) {
+            body += 'ADDITIONAL NOTES\n';
+            body += '────────────────\n';
+            body += message + '\n\n';
         }
+        body += '────────────────────────────\n';
+        body += 'Submitted via eCargoWorld Website\n';
+
+        // Open default email client
+        var mailtoLink = 'mailto:info@ecargopk.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+        window.location.href = mailtoLink;
+
+        // Reset form
+        form.reset();
+        showToast('Your email client has been opened. Please send the email to complete your request.', 'success');
 
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     });
 }
 
-async function saveQuoteToDatabase(formData) {
+function saveQuoteToDatabase(formData) {
     try {
         if (typeof supabase !== 'undefined' && supabase.from) {
-            var result = await supabase.from('quote_requests').insert({
+            supabase.from('quote_requests').insert({
                 name: formData.name, company: formData.company,
                 phone: formData.phone, email: formData.email,
                 origin: formData.origin, destination: formData.destination,
                 weight: formData.weight, volume: formData.volume,
                 freight_terms: formData.freight_terms, delivery_terms: formData.delivery_terms,
                 message: formData.message, created_at: new Date().toISOString()
+            }).then(function() {
+                console.log('Quote saved to database');
             });
-            return !result.error;
         }
-        return false;
-    } catch (e) { return false; }
+    } catch (e) {
+        console.log('Quote DB save skipped');
+    }
 }
 
 function showToast(message, type) {
