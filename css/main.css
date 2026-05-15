@@ -107,7 +107,7 @@ body {
 .certifications { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.15); }
 .cert-label { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 1.5rem; }
 .cert-badges { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; align-items: center; }
-.cert-logo-img { height: 50px; width: auto; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.85; transition: var(--transition); margin: 0 12px; }
+.cert-logo-img { height: 50px; width: auto; object-fit: contain; opacity: 0.9; transition: var(--transition); margin: 0 12px; }
 .cert-logo-img:hover { opacity: 1; }
 
 /* Mission & Values */
