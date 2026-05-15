@@ -44,34 +44,16 @@ async function loadCertifications() {
         var settings = result.data;
 
         var badgesHtml = '';
-        var namesHtml = '';
-        var hasAnyLogo = false;
-
         for (var i = 1; i <= 5; i++) {
-            var nameKey = 'cert_' + i + '_name';
             var urlKey = 'cert_' + i + '_url';
-            var name = settings[nameKey] || '';
             var url = settings[urlKey] || '';
-
             if (url) {
-                hasAnyLogo = true;
-                badgesHtml += '<img src="' + url + '" alt="' + (name || 'Certification') + '" class="cert-logo-img">';
-            }
-            if (name) {
-                namesHtml += '<span>' + name + '</span>';
+                badgesHtml += '<img src="' + url + '" alt="Certification" class="cert-logo-img">';
             }
         }
 
         var badgesDiv = document.getElementById('certBadges');
-        var namesDiv = document.getElementById('certNames');
-
         if (badgesDiv) badgesDiv.innerHTML = badgesHtml;
-        if (namesDiv) namesDiv.innerHTML = namesHtml;
-
-        // Hide names if logos are showing
-        if (hasAnyLogo && namesDiv) {
-            namesDiv.style.display = 'none';
-        }
     } catch(e) {
         console.log('Certifications not loaded');
     }
@@ -182,7 +164,9 @@ function initGlobe() {
             { lat: 31.52, lng: 74.40 }, { lat: 24.86, lng: 67.00 },
             { lat: 33.68, lng: 73.04 }, { lat: 25.20, lng: 55.27 },
             { lat: 25.25, lng: 55.36 }, { lat: 21.54, lng: 39.17 },
-            { lat: 51.47, lng: -0.46 }, { lat: 41.00, lng: 28.97 }
+            { lat: 51.47, lng: -0.46 }, { lat: 41.00, lng: 28.97 },
+            { lat: 40.64, lng: -73.78 }, { lat: 1.36, lng: 103.99 },
+            { lat: -33.95, lng: 151.18 }, { lat: 48.86, lng: 2.35 }
         ];
         var arcs = [
             { startLat: 31.52, startLng: 74.40, endLat: 25.20, endLng: 55.27 },
@@ -190,23 +174,25 @@ function initGlobe() {
             { startLat: 24.86, startLng: 67.00, endLat: 25.20, endLng: 55.27 },
             { startLat: 24.86, startLng: 67.00, endLat: 21.54, endLng: 39.17 },
             { startLat: 33.68, startLng: 73.04, endLat: 41.00, endLng: 28.97 },
-            { startLat: 31.52, startLng: 74.40, endLat: 51.47, endLng: -0.46 }
+            { startLat: 31.52, startLng: 74.40, endLat: 51.47, endLng: -0.46 },
+            { startLat: 25.20, startLng: 55.27, endLat: 40.64, endLng: -73.78 },
+            { startLat: 25.25, startLng: 55.36, endLat: 1.36, endLng: 103.99 }
         ];
 
         Globe()
             .globeImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
-            .pointOfView({ lat: 28, lng: 68, altitude: 2.2 })
+            .pointOfView({ altitude: 2.8 })
             .pointColor(function() { return '#F5A623'; })
             .pointAltitude(0)
-            .pointRadius(0.18)
+            .pointRadius(0.15)
             .pointsData(airports)
             .arcColor(function() { return '#F5A623'; })
-            .arcAltitude(0.25)
-            .arcStroke(0.7)
-            .arcDashLength(0.3)
-            .arcDashGap(0.6)
+            .arcAltitude(0.2)
+            .arcStroke(0.6)
+            .arcDashLength(0.25)
+            .arcDashGap(0.5)
             .arcDashInitialGap(function() { return Math.random(); })
-            .arcDashAnimateTime(3000)
+            .arcDashAnimateTime(4000)
             .arcsData(arcs)
             (container);
     } catch(e) {
