@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initQuoteForm();
     initScrollAnimations();
     await loadDynamicImages();
+    await loadCertifications();
     initGlobe();
 });
 
@@ -33,6 +34,46 @@ async function loadDynamicImages() {
         });
     } catch (error) {
         console.log('Dynamic images: using fallbacks');
+    }
+}
+
+async function loadCertifications() {
+    try {
+        var result = await supabase.from('settings').select('*').single();
+        if (result.error || !result.data) return;
+        var settings = result.data;
+
+        var badgesHtml = '';
+        var namesHtml = '';
+        var hasAnyLogo = false;
+
+        for (var i = 1; i <= 5; i++) {
+            var nameKey = 'cert_' + i + '_name';
+            var urlKey = 'cert_' + i + '_url';
+            var name = settings[nameKey] || '';
+            var url = settings[urlKey] || '';
+
+            if (url) {
+                hasAnyLogo = true;
+                badgesHtml += '<img src="' + url + '" alt="' + (name || 'Certification') + '" class="cert-logo-img">';
+            }
+            if (name) {
+                namesHtml += '<span>' + name + '</span>';
+            }
+        }
+
+        var badgesDiv = document.getElementById('certBadges');
+        var namesDiv = document.getElementById('certNames');
+
+        if (badgesDiv) badgesDiv.innerHTML = badgesHtml;
+        if (namesDiv) namesDiv.innerHTML = namesHtml;
+
+        // Hide names if logos are showing
+        if (hasAnyLogo && namesDiv) {
+            namesDiv.style.display = 'none';
+        }
+    } catch(e) {
+        console.log('Certifications not loaded');
     }
 }
 
@@ -132,49 +173,45 @@ function initScrollAnimations() {
 }
 
 function initGlobe() {
-    var canvas = document.getElementById('heroGlobe');
-    if (!canvas || typeof Globe === 'undefined') return;
+    var container = document.getElementById('globeViz');
+    if (!container) return;
+    if (typeof Globe === 'undefined') { console.log('Globe.GL not loaded'); return; }
 
-    var routes = [
-        { from: [31.52, 74.40], to: [25.20, 55.27] },
-        { from: [24.86, 67.00], to: [25.25, 55.36] },
-        { from: [33.68, 73.04], to: [21.54, 39.17] },
-        { from: [31.52, 74.40], to: [51.47, -0.46] },
-        { from: [24.86, 67.00], to: [41.00, 28.97] }
-    ];
+    try {
+        var airports = [
+            { lat: 31.52, lng: 74.40 }, { lat: 24.86, lng: 67.00 },
+            { lat: 33.68, lng: 73.04 }, { lat: 25.20, lng: 55.27 },
+            { lat: 25.25, lng: 55.36 }, { lat: 21.54, lng: 39.17 },
+            { lat: 51.47, lng: -0.46 }, { lat: 41.00, lng: 28.97 }
+        ];
+        var arcs = [
+            { startLat: 31.52, startLng: 74.40, endLat: 25.20, endLng: 55.27 },
+            { startLat: 31.52, startLng: 74.40, endLat: 25.25, endLng: 55.36 },
+            { startLat: 24.86, startLng: 67.00, endLat: 25.20, endLng: 55.27 },
+            { startLat: 24.86, startLng: 67.00, endLat: 21.54, endLng: 39.17 },
+            { startLat: 33.68, startLng: 73.04, endLat: 41.00, endLng: 28.97 },
+            { startLat: 31.52, startLng: 74.40, endLat: 51.47, endLng: -0.46 }
+        ];
 
-    var airports = [
-        { lat: 31.52, lng: 74.40, name: 'LHE' },
-        { lat: 24.86, lng: 67.00, name: 'KHI' },
-        { lat: 33.68, lng: 73.04, name: 'ISB' },
-        { lat: 25.20, lng: 55.27, name: 'DXB' },
-        { lat: 25.25, lng: 55.36, name: 'DOH' },
-        { lat: 21.54, lng: 39.17, name: 'JED' },
-        { lat: 51.47, lng: -0.46, name: 'LHR' },
-        { lat: 41.00, lng: 28.97, name: 'IST' }
-    ];
-
-    var globe = Globe()
-        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-        .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
-        .pointsData(airports)
-        .pointLat('lat')
-        .pointLng('lng')
-        .pointColor(function() { return '#F5A623'; })
-        .pointRadius(0.25)
-        .pointLabel(function(d) { return d.name; })
-        .arcsData(routes)
-        .arcColor(function() { return '#F5A623'; })
-        .arcStroke(0.6)
-        .arcDashLength(0.4)
-        .arcDashGap(0.15)
-        .arcDashAnimateTime(3000)
-        .arcAltitude(0.3)
-        (canvas);
-
-    globe.controls().autoRotate = true;
-    globe.controls().autoRotateSpeed = 0.5;
+        Globe()
+            .globeImageUrl('//cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
+            .pointOfView({ lat: 28, lng: 68, altitude: 2.2 })
+            .pointColor(function() { return '#F5A623'; })
+            .pointAltitude(0)
+            .pointRadius(0.18)
+            .pointsData(airports)
+            .arcColor(function() { return '#F5A623'; })
+            .arcAltitude(0.25)
+            .arcStroke(0.7)
+            .arcDashLength(0.3)
+            .arcDashGap(0.6)
+            .arcDashInitialGap(function() { return Math.random(); })
+            .arcDashAnimateTime(3000)
+            .arcsData(arcs)
+            (container);
+    } catch(e) {
+        console.error('Globe init error:', e);
+    }
 }
 
 var animStyles = document.createElement('style');
