@@ -5,7 +5,7 @@
 (function() {
     'use strict';
 
-    // ============ AUTH CHECK — Redirect if not manager ============
+    // ============ AUTH CHECK ============
     async function checkAdminAccess() {
         try {
             var userResult = await window.supabase.auth.getUser();
@@ -134,12 +134,26 @@
         }
 
         getPreviewId(slot) {
-            var map = { logo_ecw: 'logoEcwPreview', logo_als: 'logoAlsPreview', hero_image: 'heroImagePreview', why_us_image: 'whyUsImagePreview', service_air: 'serviceAirPreview', service_sea: 'serviceSeaPreview' };
+            var map = { 
+                logo_ecw: 'logoEcwPreview', logo_als: 'logoAlsPreview', 
+                hero_image: 'heroImagePreview', why_us_image: 'whyUsImagePreview', 
+                service_air: 'serviceAirPreview', service_sea: 'serviceSeaPreview',
+                cert_iata: 'certIataPreview', cert_piffa: 'certPiffaPreview',
+                cert_aac: 'certAacPreview', cert_lcci: 'certLcciPreview',
+                cert_naplcc: 'certNaplccPreview'
+            };
             return map[slot] || '';
         }
 
         getPlaceholderId(slot) {
-            var map = { logo_ecw: 'logoEcwPlaceholder', logo_als: 'logoAlsPlaceholder', hero_image: 'heroImagePlaceholder', why_us_image: 'whyUsImagePlaceholder', service_air: 'serviceAirPlaceholder', service_sea: 'serviceSeaPlaceholder' };
+            var map = { 
+                logo_ecw: 'logoEcwPlaceholder', logo_als: 'logoAlsPlaceholder', 
+                hero_image: 'heroImagePlaceholder', why_us_image: 'whyUsImagePlaceholder', 
+                service_air: 'serviceAirPlaceholder', service_sea: 'serviceSeaPlaceholder',
+                cert_iata: 'certIataPlaceholder', cert_piffa: 'certPiffaPlaceholder',
+                cert_aac: 'certAacPlaceholder', cert_lcci: 'certLcciPlaceholder',
+                cert_naplcc: 'certNaplccPlaceholder'
+            };
             return map[slot] || '';
         }
 
@@ -260,7 +274,11 @@
                     }
                 }
 
-                var imageSlots = ['logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 'service_air', 'service_sea'];
+                var imageSlots = [
+                    'logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 
+                    'service_air', 'service_sea',
+                    'cert_iata', 'cert_piffa', 'cert_aac', 'cert_lcci', 'cert_naplcc'
+                ];
                 var self = this;
                 imageSlots.forEach(function(slot) {
                     var url = settings[slot + '_url'];
@@ -291,7 +309,6 @@
         }
     }
 
-    // Start admin panel after auth check
     document.addEventListener('DOMContentLoaded', function() { 
         new AdminPanel(); 
     });
