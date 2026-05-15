@@ -1,5 +1,5 @@
 // ============================================
-// ALS eCargoWorld — Admin Panel Controller
+// eCargoWorld — Admin Panel Controller
 // ============================================
 
 (function() {
@@ -19,8 +19,8 @@
                 .eq('id', userResult.data.user.id)
                 .single();
             
-            var isManager = profileResult.data && (profileResult.data.role === 'manager' || profileResult.data.is_admin);
-            if (!isManager) {
+            var canAccess = profileResult.data && (profileResult.data.role === 'manager' || profileResult.data.role === 'director' || profileResult.data.is_admin);
+            if (!canAccess) {
                 window.location.href = 'app.html';
                 return false;
             }
@@ -138,9 +138,8 @@
                 logo_ecw: 'logoEcwPreview', logo_als: 'logoAlsPreview', 
                 hero_image: 'heroImagePreview', why_us_image: 'whyUsImagePreview', 
                 service_air: 'serviceAirPreview', service_sea: 'serviceSeaPreview',
-                cert_iata: 'certIataPreview', cert_piffa: 'certPiffaPreview',
-                cert_aac: 'certAacPreview', cert_lcci: 'certLcciPreview',
-                cert_naplcc: 'certNaplccPreview'
+                cert_1: 'cert1Preview', cert_2: 'cert2Preview', cert_3: 'cert3Preview',
+                cert_4: 'cert4Preview', cert_5: 'cert5Preview'
             };
             return map[slot] || '';
         }
@@ -150,9 +149,8 @@
                 logo_ecw: 'logoEcwPlaceholder', logo_als: 'logoAlsPlaceholder', 
                 hero_image: 'heroImagePlaceholder', why_us_image: 'whyUsImagePlaceholder', 
                 service_air: 'serviceAirPlaceholder', service_sea: 'serviceSeaPlaceholder',
-                cert_iata: 'certIataPlaceholder', cert_piffa: 'certPiffaPlaceholder',
-                cert_aac: 'certAacPlaceholder', cert_lcci: 'certLcciPlaceholder',
-                cert_naplcc: 'certNaplccPlaceholder'
+                cert_1: 'cert1Placeholder', cert_2: 'cert2Placeholder', cert_3: 'cert3Placeholder',
+                cert_4: 'cert4Placeholder', cert_5: 'cert5Placeholder'
             };
             return map[slot] || '';
         }
@@ -174,6 +172,15 @@
             try {
                 var updates = {};
 
+                // Save certification names
+                for (var i = 1; i <= 5; i++) {
+                    var nameInput = document.getElementById('cert' + i + 'Name');
+                    if (nameInput) {
+                        updates['cert_' + i + '_name'] = nameInput.value.trim();
+                    }
+                }
+
+                // Upload images
                 for (var entry of this.pendingUploads.entries()) {
                     var slot = entry[0];
                     var file = entry[1];
@@ -207,7 +214,7 @@
                     if (settingsResult.error) throw settingsResult.error;
 
                     this.pendingUploads.clear();
-                    this.showToast('Images saved successfully!');
+                    this.showToast('Images and names saved successfully!');
                     await this.loadCurrentSettings();
                 } else {
                     this.showToast('No changes to save.');
@@ -274,10 +281,20 @@
                     }
                 }
 
+                // Load certification names
+                for (var i = 1; i <= 5; i++) {
+                    var nameInput = document.getElementById('cert' + i + 'Name');
+                    var nameKey = 'cert_' + i + '_name';
+                    if (nameInput && settings[nameKey] !== undefined) {
+                        nameInput.value = settings[nameKey] || '';
+                    }
+                }
+
+                // Load images
                 var imageSlots = [
                     'logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 
                     'service_air', 'service_sea',
-                    'cert_iata', 'cert_piffa', 'cert_aac', 'cert_lcci', 'cert_naplcc'
+                    'cert_1', 'cert_2', 'cert_3', 'cert_4', 'cert_5'
                 ];
                 var self = this;
                 imageSlots.forEach(function(slot) {
