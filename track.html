@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Shipment — eCargoWorld</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="js/supabase.js"></script>
+    <style>
+        .track-page {
+            min-height: 100vh;
+            background: linear-gradient(160deg, #1A2E4A 0%, #2E3F5C 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .track-container {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .track-container h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2E3F5C;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .track-container p {
+            color: #6B7280;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .track-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .track-input-group input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        .track-input-group input:focus {
+            border-color: #F5A623;
+            box-shadow: 0 0 0 3px rgba(245,166,35,0.1);
+        }
+        .track-input-group button {
+            padding: 14px 28px;
+            background: #F5A623;
+            color: #1A2E4A;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .track-input-group button:hover {
+            background: #f7b840;
+        }
+        .track-result {
+            display: none;
+            background: #F8F9FB;
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 1rem;
+        }
+        .track-result.active {
+            display: block;
+        }
+        .track-result h3 {
+            color: #2E3F5C;
+            margin-bottom: 1rem;
+        }
+        .track-status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .track-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .track-detail-item {
+            padding: 10px 0;
+        }
+        .track-detail-item .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6B7280;
+        }
+        .track-detail-item .value {
+            font-weight: 600;
+            color: #2E3F5C;
+            font-size: 1rem;
+        }
+        .track-error {
+            display: none;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 1rem;
+            color: #DC2626;
+            text-align: center;
+        }
+        .track-error.active {
+            display: block;
+        }
+        .track-back {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #F5A623;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .track-back:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="track-page">
+        <div class="track-container">
+            <h1>Track Your Shipment</h1>
+            <p>Enter your AWB number to see real-time status</p>
+            
+            <div class="track-input-group">
+                <input type="text" id="trackAWB" placeholder="e.g. 176-5432-1098" autocomplete="off">
+                <button id="trackBtn">Track</button>
+            </div>
+
+            <div class="track-result" id="trackResult">
+                <h3 id="trackAWBDisplay"></h3>
+                <div class="track-status-badge" id="trackStatusBadge"></div>
+                <div class="track-detail">
+                    <div class="track-detail-item"><span class="label">Customer</span><div class="value" id="trackCustomer"></div></div>
+                    <div class="track-detail-item"><span class="label">Origin</span><div class="value" id="trackOrigin"></div></div>
+                    <div class="track-detail-item"><span class="label">Destination</span><div class="value" id="trackDestination"></div></div>
+                    <div class="track-detail-item"><span class="label">Airline / Flight</span><div class="value" id="trackFlight"></div></div>
+                    <div class="track-detail-item"><span class="label">Weight</span><div class="value" id="trackWeight"></div></div>
+                    <div class="track-detail-item"><span class="label">Last Updated</span><div class="value" id="trackUpdated"></div></div>
+                </div>
+            </div>
+
+            <div class="track-error" id="trackError"></div>
+
+            <a href="index.html" class="track-back">← Back to eCargoWorld</a>
+        </div>
+    </div>
+
+    <script src="js/track.js"></script>
+</body>
+</html>
