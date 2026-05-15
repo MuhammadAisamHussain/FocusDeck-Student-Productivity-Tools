@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/main.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="js/supabase.js"></script>
+    <script src="https://unpkg.com/globe.gl@2.32.2/dist/globe.gl.min.js"></script>
 </head>
 <body>
 
@@ -54,10 +55,7 @@
                 </div>
             </div>
             <div class="hero-visual">
-                <div class="globe-container" id="heroFallbackVisual">
-                    <div class="globe-dots"></div>
-                    <div class="plane-trail"></div>
-                </div>
+                <canvas id="heroGlobe" style="width:100%;height:100%;cursor:grab;"></canvas>
             </div>
         </div>
         <div class="hero-arc"></div>
@@ -100,7 +98,19 @@
                 <h2>Your Global <span class="text-amber">Logistics Partner</span></h2>
                 <p class="about-intro">Founded in 2019, ECARGOWORLD is a Pakistan-based global logistics and freight forwarding company committed to simplifying supply chains for businesses of all sizes.</p>
                 <p>We offer comprehensive, cost-effective, and reliable logistics solutions tailored to your specific needs, whether you're shipping across cities or continents. Our dedicated team of professionals, deep industry knowledge, and global network allow us to deliver services that go beyond transportation — <strong>we deliver peace of mind.</strong></p>
-                <div class="certifications"><span class="cert-label">Member of:</span><div class="cert-badges"><span class="cert-badge">IATA</span><span class="cert-badge">PIFFA</span><span class="cert-badge">AAC</span><span class="cert-badge">LCCI</span><span class="cert-badge">NAPLCC</span></div></div>
+                <div class="certifications">
+                    <span class="cert-label">Member of:</span>
+                    <div class="cert-badges">
+                        <img src="" alt="IATA" class="cert-logo-img dynamic-image" data-slot="cert_iata_url">
+                        <img src="" alt="PIFFA" class="cert-logo-img dynamic-image" data-slot="cert_piffa_url">
+                        <img src="" alt="AAC" class="cert-logo-img dynamic-image" data-slot="cert_aac_url">
+                        <img src="" alt="LCCI" class="cert-logo-img dynamic-image" data-slot="cert_lcci_url">
+                        <img src="" alt="NAPLCC" class="cert-logo-img dynamic-image" data-slot="cert_naplcc_url">
+                    </div>
+                    <div class="cert-names">
+                        <span>IATA</span><span>PIFFA</span><span>AAC</span><span>LCCI</span><span>NAPLCC</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -167,24 +177,8 @@
                             <div class="form-group"><label for="qfVolume">Volume *</label><input type="text" id="qfVolume" required placeholder="e.g. 2.5 CBM"></div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label for="qfFreightTerms">Freight Terms *</label>
-                                <select id="qfFreightTerms" required>
-                                    <option value="">Select</option>
-                                    <option value="FOB">FOB</option>
-                                    <option value="CNF">CNF</option>
-                                    <option value="EXW">EXW</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="qfDeliveryTerms">Delivery Terms *</label>
-                                <select id="qfDeliveryTerms" required>
-                                    <option value="">Select</option>
-                                    <option value="DDP">DDP</option>
-                                    <option value="DAP">DAP</option>
-                                    <option value="Port to Port">Port to Port</option>
-                                </select>
-                            </div>
+                            <div class="form-group"><label for="qfFreightTerms">Freight Terms *</label><select id="qfFreightTerms" required><option value="">Select</option><option value="FOB">FOB</option><option value="CNF">CNF</option><option value="EXW">EXW</option></select></div>
+                            <div class="form-group"><label for="qfDeliveryTerms">Delivery Terms *</label><select id="qfDeliveryTerms" required><option value="">Select</option><option value="DDP">DDP</option><option value="DAP">DAP</option><option value="Port to Port">Port to Port</option></select></div>
                         </div>
                         <div class="form-group"><label for="qfMessage">Additional Details</label><textarea id="qfMessage" rows="4" placeholder="Any special requirements or questions..."></textarea></div>
                         <button type="submit" class="btn btn-amber btn-full">Submit Quote Request</button>
