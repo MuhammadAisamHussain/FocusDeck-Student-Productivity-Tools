@@ -34,6 +34,7 @@
         constructor() {
             this.db = window.supabase;
             this.pendingUploads = new Map();
+            this.teamsCache = [];
             this.init();
         }
 
@@ -43,7 +44,9 @@
             this.bindNavigation();
             this.bindImageUploads();
             this.bindSaveButtons();
+            this.bindTeamActions();
             await this.loadCurrentSettings();
+            this.loadTeams();
             this.loadUsers();
         }
 
@@ -58,11 +61,12 @@
                     var sectionEl = document.getElementById('section' + section.charAt(0).toUpperCase() + section.slice(1));
                     if (sectionEl) sectionEl.classList.add('active');
                     if (section === 'users') self.loadUsers();
+                    if (section === 'teams') self.loadTeams();
                 });
             });
         }
 
-        // ============ IMAGE UPLOAD METHODS (unchanged) ============
+        // ============ IMAGE UPLOADS ============
         bindImageUploads() {
             var self = this;
             document.querySelectorAll('input[type="file"]').forEach(function(input) {
@@ -96,10 +100,10 @@
 
         handleImageSelected(slot, file) {
             if (!['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(file.type)) {
-                alert('Please upload a PNG, JPEG, WebP, or SVG file.');
+                alert('Please upload PNG, JPEG, WebP, or SVG.');
                 return;
             }
-            if (file.size > 5 * 1024 * 1024) { alert('File size must be under 5MB.'); return; }
+            if (file.size > 5 * 1024 * 1024) { alert('Max 5MB.'); return; }
             this.pendingUploads.set(slot, file);
             var reader = new FileReader();
             var self = this;
@@ -136,53 +140,48 @@
 
         bindSaveButtons() {
             var self = this;
-            var saveBrandingBtn = document.getElementById('saveBranding');
-            var saveSettingsBtn = document.getElementById('saveSettings');
-            if (saveBrandingBtn) saveBrandingBtn.addEventListener('click', function() { self.saveBranding(); });
-            if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', function() { self.saveSettings(); });
+            document.getElementById('saveBranding')?.addEventListener('click', function() { self.saveBranding(); });
+            document.getElementById('saveSettings')?.addEventListener('click', function() { self.saveSettings(); });
         }
 
         async saveBranding() {
             var saveBtn = document.getElementById('saveBranding');
-            var originalText = saveBtn.textContent;
-            saveBtn.textContent = 'Uploading...';
-            saveBtn.disabled = true;
+            var orig = saveBtn.textContent;
+            saveBtn.textContent = 'Saving...'; saveBtn.disabled = true;
             try {
                 var updates = {};
                 for (var i = 1; i <= 5; i++) {
-                    var nameInput = document.getElementById('cert' + i + 'Name');
-                    if (nameInput) updates['cert_' + i + '_name'] = nameInput.value.trim();
+                    var ni = document.getElementById('cert' + i + 'Name');
+                    if (ni) updates['cert_' + i + '_name'] = ni.value.trim();
                 }
                 for (var entry of this.pendingUploads.entries()) {
                     var slot = entry[0], file = entry[1];
                     if (file === null) { updates[slot + '_url'] = ''; }
                     else if (file instanceof File) {
-                        var fileExt = file.name.split('.').pop();
-                        var filePath = slot + '_' + Date.now() + '.' + fileExt;
-                        var uploadResult = await this.db.storage.from('assets').upload(filePath, file, { cacheControl: '0', upsert: true });
-                        if (uploadResult.error) throw uploadResult.error;
-                        var urlResult = this.db.storage.from('assets').getPublicUrl(filePath);
-                        updates[slot + '_url'] = urlResult.data.publicUrl;
+                        var fp = slot + '_' + Date.now() + '.' + file.name.split('.').pop();
+                        var up = await this.db.storage.from('assets').upload(fp, file, { cacheControl: '0', upsert: true });
+                        if (up.error) throw up.error;
+                        updates[slot + '_url'] = this.db.storage.from('assets').getPublicUrl(fp).data.publicUrl;
                     }
                 }
-                if (Object.keys(updates).length > 0) {
+                if (Object.keys(updates).length) {
                     updates.updated_at = new Date().toISOString();
-                    var settingsResult = await this.db.from('settings').upsert({ id: 1, ...updates }, { onConflict: 'id' });
-                    if (settingsResult.error) throw settingsResult.error;
+                    var sr = await this.db.from('settings').upsert({ id: 1, ...updates }, { onConflict: 'id' });
+                    if (sr.error) throw sr.error;
                     this.pendingUploads.clear();
-                    this.showToast('All changes saved successfully!');
+                    this.showToast('Saved!');
                     await this.loadCurrentSettings();
-                } else { this.showToast('No changes to save.'); }
-            } catch (error) { this.showToast('Error: ' + (error.message || 'Unknown error'), 'error'); }
-            finally { saveBtn.textContent = originalText; saveBtn.disabled = false; }
+                }
+            } catch(e) { this.showToast('Error: ' + e.message, 'error'); }
+            finally { saveBtn.textContent = orig; saveBtn.disabled = false; }
         }
 
         async saveSettings() {
             var saveBtn = document.getElementById('saveSettings');
-            var originalText = saveBtn.textContent;
+            var orig = saveBtn.textContent;
             saveBtn.textContent = 'Saving...'; saveBtn.disabled = true;
             try {
-                var settings = {
+                var s = {
                     company_name: document.getElementById('settingCompanyName')?.value || '',
                     company_email: document.getElementById('settingCompanyEmail')?.value || '',
                     company_phone: document.getElementById('settingCompanyPhone')?.value || '',
@@ -190,62 +189,147 @@
                     usd_pkr_rate: parseFloat(document.getElementById('settingUsdPkr')?.value) || 278.50,
                     updated_at: new Date().toISOString()
                 };
-                var result = await this.db.from('settings').upsert({ id: 1, ...settings }, { onConflict: 'id' });
-                if (result.error) throw result.error;
-                this.showToast('Settings saved successfully!');
-            } catch (error) { this.showToast('Error: ' + (error.message || 'Unknown error'), 'error'); }
-            finally { saveBtn.textContent = originalText; saveBtn.disabled = false; }
+                var r = await this.db.from('settings').upsert({ id: 1, ...s }, { onConflict: 'id' });
+                if (r.error) throw r.error;
+                this.showToast('Settings saved!');
+            } catch(e) { this.showToast('Error: ' + e.message, 'error'); }
+            finally { saveBtn.textContent = orig; saveBtn.disabled = false; }
         }
 
         async loadCurrentSettings() {
             try {
-                var result = await this.db.from('settings').select('*').single();
-                if (result.error || !result.data) return;
-                var settings = result.data;
-                var fieldMap = { settingCompanyName: 'company_name', settingCompanyEmail: 'company_email', settingCompanyPhone: 'company_phone', settingCompanyAddress: 'company_address', settingUsdPkr: 'usd_pkr_rate' };
-                for (var elementId in fieldMap) {
-                    var el = document.getElementById(elementId);
-                    if (el && settings[fieldMap[elementId]] !== undefined && settings[fieldMap[elementId]] !== null) el.value = settings[fieldMap[elementId]];
-                }
+                var r = await this.db.from('settings').select('*').single();
+                if (r.error || !r.data) return;
+                var s = r.data;
+                var fm = { settingCompanyName: 'company_name', settingCompanyEmail: 'company_email', settingCompanyPhone: 'company_phone', settingCompanyAddress: 'company_address', settingUsdPkr: 'usd_pkr_rate' };
+                for (var k in fm) { var el = document.getElementById(k); if (el && s[fm[k]] != null) el.value = s[fm[k]]; }
                 for (var i = 1; i <= 5; i++) {
-                    var nameInput = document.getElementById('cert' + i + 'Name');
-                    if (nameInput && settings['cert_' + i + '_name'] !== undefined) nameInput.value = settings['cert_' + i + '_name'] || '';
+                    var ni = document.getElementById('cert' + i + 'Name');
+                    if (ni && s['cert_' + i + '_name'] != null) ni.value = s['cert_' + i + '_name'] || '';
                 }
-                var imageSlots = ['logo_ecw', 'logo_als', 'hero_image', 'why_us_image', 'service_air', 'service_sea', 'cert_1', 'cert_2', 'cert_3', 'cert_4', 'cert_5'];
+                var slots = ['logo_ecw','logo_als','hero_image','why_us_image','service_air','service_sea','cert_1','cert_2','cert_3','cert_4','cert_5'];
                 var self = this;
-                imageSlots.forEach(function(slot) {
-                    var url = settings[slot + '_url'];
+                slots.forEach(function(slot) {
+                    var url = s[slot + '_url'];
                     if (url) {
-                        var preview = document.getElementById(self.getPreviewId(slot));
-                        var placeholder = document.getElementById(self.getPlaceholderId(slot));
-                        if (preview) { preview.src = url + '?t=' + Date.now(); preview.style.display = 'block'; }
-                        if (placeholder) placeholder.style.display = 'none';
-                        var card = preview ? preview.closest('.image-upload-card') : null;
+                        var pv = document.getElementById(self.getPreviewId(slot));
+                        var ph = document.getElementById(self.getPlaceholderId(slot));
+                        if (pv) { pv.src = url + '?t=' + Date.now(); pv.style.display = 'block'; }
+                        if (ph) ph.style.display = 'none';
+                        var card = pv ? pv.closest('.image-upload-card') : null;
                         if (card) { card.classList.add('has-image'); var rm = card.querySelector('.remove-image'); if (rm) rm.style.display = 'inline-flex'; }
                     }
                 });
-            } catch (error) { console.error('Failed to load settings:', error); }
+            } catch(e) {}
         }
 
-        // ============ USER MANAGEMENT ============
+        // ============ TEAMS ============
+        bindTeamActions() {
+            var self = this;
+            document.getElementById('btnAddTeam')?.addEventListener('click', function() {
+                self.addTeam();
+            });
+        }
+
+        async loadTeams() {
+            var container = document.getElementById('teamsListContainer');
+            if (!container) return;
+            try {
+                var r = await this.db.from('teams').select('*').order('name');
+                this.teamsCache = r.data || [];
+                if (!this.teamsCache.length) {
+                    container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No teams yet. Create one below.</p>';
+                    return;
+                }
+                var self = this;
+                container.innerHTML = this.teamsCache.map(function(t) {
+                    return '<div class="team-row" data-id="' + t.id + '">' +
+                        '<div class="team-info"><strong>' + escapeHtml(t.name) + '</strong>' + (t.description ? '<br><small>' + escapeHtml(t.description) + '</small>' : '') + '</div>' +
+                        '<button class="btn btn-outline-dark btn-xs edit-team-btn">Edit</button>' +
+                        '<button class="btn btn-danger btn-xs delete-team-btn">Delete</button>' +
+                        '</div>';
+                }).join('');
+
+                container.querySelectorAll('.edit-team-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var row = btn.closest('.team-row');
+                        var id = row.dataset.id;
+                        var name = row.querySelector('strong').textContent;
+                        var desc = row.querySelector('small') ? row.querySelector('small').textContent : '';
+                        var newName = prompt('Edit team name:', name);
+                        if (newName && newName.trim()) {
+                            self.updateTeam(id, newName.trim(), desc);
+                        }
+                    });
+                });
+
+                container.querySelectorAll('.delete-team-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        if (!confirm('Delete this team? Employees in it will become unassigned.')) return;
+                        var id = btn.closest('.team-row').dataset.id;
+                        self.deleteTeam(id);
+                    });
+                });
+            } catch(e) {
+                container.innerHTML = '<p style="color:var(--red);text-align:center;padding:40px;">Error loading teams.</p>';
+            }
+        }
+
+        async addTeam() {
+            var nameInput = document.getElementById('newTeamName');
+            var descInput = document.getElementById('newTeamDesc');
+            var name = nameInput.value.trim();
+            if (!name) { alert('Enter a team name.'); return; }
+            try {
+                await this.db.from('teams').insert({ name: name, description: descInput.value.trim() });
+                nameInput.value = ''; descInput.value = '';
+                this.showToast('Team created!');
+                this.loadTeams();
+            } catch(e) { this.showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async updateTeam(id, name, description) {
+            try {
+                await this.db.from('teams').update({ name: name, description: description, updated_at: new Date().toISOString() }).eq('id', id);
+                this.showToast('Team updated!');
+                this.loadTeams();
+            } catch(e) { this.showToast('Error: ' + e.message, 'error'); }
+        }
+
+        async deleteTeam(id) {
+            try {
+                await this.db.from('teams').delete().eq('id', id);
+                this.showToast('Team deleted.');
+                this.loadTeams();
+            } catch(e) { this.showToast('Error: ' + e.message, 'error'); }
+        }
+
+        // ============ USERS ============
         async loadUsers() {
             var container = document.getElementById('usersListContainer');
             if (!container) return;
-            container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading users...</p>';
-
+            container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading...</p>';
             try {
-                var result = await this.db.from('profiles').select('*').order('full_name');
-                if (!result.data || result.data.length === 0) {
-                    container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No users found.</p>';
+                var r = await this.db.from('profiles').select('*').order('full_name');
+                if (!r.data || !r.data.length) {
+                    container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No users.</p>';
                     return;
                 }
-
                 var self = this;
-                container.innerHTML = result.data.map(function(p) {
+                var teamsOpts = '<option value="">No Team</option>';
+                if (this.teamsCache.length) {
+                    teamsOpts += this.teamsCache.map(function(t) {
+                        return '<option value="' + t.id + '">' + escapeHtml(t.name) + '</option>';
+                    }).join('');
+                }
+
+                container.innerHTML = r.data.map(function(p) {
+                    var teamOptsHtml = teamsOpts.replace('value="' + (p.team_id || '') + '"', 'value="' + (p.team_id || '') + '" selected');
                     return '<div class="user-row" data-id="' + p.id + '">' +
                         '<div class="user-info"><strong>' + (p.full_name || 'Unnamed') + '</strong><small>' + (p.email || '') + '</small></div>' +
-                        '<div class="editable-field"><label style="font-size:0.7rem;color:var(--text-tertiary);">Name</label><input type="text" class="user-name-input" value="' + (p.full_name || '') + '" placeholder="Display name"></div>' +
-                        '<div class="editable-field"><label style="font-size:0.7rem;color:var(--text-tertiary);">Role</label><select class="user-role-select"><option value="employee"' + (p.role === 'employee' ? ' selected' : '') + '>Employee</option><option value="manager"' + (p.role === 'manager' ? ' selected' : '') + '>Manager</option><option value="director"' + (p.role === 'director' ? ' selected' : '') + '>Director</option></select></div>' +
+                        '<div class="editable-field"><label>Name</label><input type="text" class="user-name-input" value="' + (p.full_name || '') + '"></div>' +
+                        '<div class="editable-field"><label>Role</label><select class="user-role-select"><option value="employee"' + (p.role === 'employee' ? ' selected' : '') + '>Employee</option><option value="manager"' + (p.role === 'manager' ? ' selected' : '') + '>Manager</option><option value="director"' + (p.role === 'director' ? ' selected' : '') + '>Director</option></select></div>' +
+                        '<div class="editable-field"><label>Team</label><select class="user-team-select">' + teamOptsHtml + '</select></div>' +
                         '<button class="btn btn-amber btn-xs save-user-btn">Save</button>' +
                         '</div>';
                 }).join('');
@@ -253,18 +337,20 @@
                 container.querySelectorAll('.save-user-btn').forEach(function(btn) {
                     btn.addEventListener('click', async function() {
                         var row = btn.closest('.user-row');
-                        var userId = row.dataset.id;
+                        var uid = row.dataset.id;
                         var newName = row.querySelector('.user-name-input').value.trim();
                         var newRole = row.querySelector('.user-role-select').value;
+                        var newTeam = row.querySelector('.user-team-select').value || null;
 
                         btn.textContent = '...'; btn.disabled = true;
                         try {
                             await self.db.from('profiles').update({
                                 full_name: newName,
                                 role: newRole,
+                                team_id: newTeam,
                                 is_admin: (newRole === 'director'),
                                 updated_at: new Date().toISOString()
-                            }).eq('id', userId);
+                            }).eq('id', uid);
                             self.showToast('User updated!');
                             self.loadUsers();
                         } catch(e) {
@@ -274,7 +360,7 @@
                     });
                 });
             } catch(e) {
-                container.innerHTML = '<p style="color:var(--red);text-align:center;padding:40px;">Error loading users.</p>';
+                container.innerHTML = '<p style="color:var(--red);text-align:center;padding:40px;">Error.</p>';
             }
         }
 
@@ -286,6 +372,13 @@
             document.body.appendChild(toast);
             setTimeout(function() { toast.style.animation = 'toastOut 0.3s ease-in'; setTimeout(function() { toast.remove(); }, 300); }, 3500);
         }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     document.addEventListener('DOMContentLoaded', function() { new AdminPanel(); });
