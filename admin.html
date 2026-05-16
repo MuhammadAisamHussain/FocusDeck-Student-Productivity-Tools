@@ -47,19 +47,27 @@
         .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
         .btn-lg { padding: 14px 28px; font-size: 1rem; }
         .btn-xs { padding: 4px 10px; font-size: 0.7rem; }
+        .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+        .btn-danger:hover { background: rgba(239,68,68,0.25); }
         .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
         .form-group label { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-        .form-group input { background: var(--bg-tertiary); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 10px 14px; border-radius: var(--radius); font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; }
-        .form-group input:focus { border-color: var(--border-active); box-shadow: 0 0 0 3px var(--accent-dim); }
-        .form-group select { background: var(--bg-tertiary); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 10px 14px; border-radius: var(--radius); font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; }
+        .form-group input, .form-group select { background: var(--bg-tertiary); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 10px 14px; border-radius: var(--radius); font-family: 'Inter', sans-serif; font-size: 0.9rem; outline: none; }
+        .form-group input:focus, .form-group select:focus { border-color: var(--border-active); box-shadow: 0 0 0 3px var(--accent-dim); }
         .cert-name-input { width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-medium); border-radius: 6px; color: var(--text-primary); font-family: Inter, sans-serif; font-size: 0.85rem; text-align: center; margin-top: 8px; }
         .user-row { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-elevated); border-radius: var(--radius); margin-bottom: 8px; flex-wrap: wrap; }
-        .user-row .user-info { flex: 1; min-width: 150px; }
+        .user-row .user-info { flex: 1; min-width: 120px; }
         .user-row .user-info strong { display: block; }
         .user-row .user-info small { color: var(--text-tertiary); }
         .user-row input, .user-row select { background: var(--bg-tertiary); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 6px 10px; border-radius: 6px; font-family: Inter, sans-serif; font-size: 0.85rem; }
         .user-row select { cursor: pointer; }
-        .editable-field { display: flex; align-items: center; gap: 6px; }
+        .editable-field { display: flex; flex-direction: column; gap: 2px; }
+        .editable-field > label { font-size: 0.65rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .team-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--bg-elevated); border-radius: var(--radius); margin-bottom: 6px; }
+        .team-row .team-info { flex: 1; }
+        .team-row .team-info strong { display: block; }
+        .team-row .team-info small { color: var(--text-tertiary); }
+        .add-team-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+        .add-team-row input { flex: 1; min-width: 150px; background: var(--bg-tertiary); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 8px 12px; border-radius: var(--radius); font-family: Inter, sans-serif; font-size: 0.85rem; }
         @media (max-width: 768px) { .admin-layout { grid-template-columns: 1fr; } .admin-sidebar { display: none; } }
     </style>
 </head>
@@ -73,6 +81,9 @@
                 </li>
                 <li class="admin-nav-item" data-section="settings">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>General Settings
+                </li>
+                <li class="admin-nav-item" data-section="teams">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Manage Teams
                 </li>
                 <li class="admin-nav-item" data-section="users">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Manage Users
@@ -89,42 +100,29 @@
                 <div class="settings-group">
                     <h4>Company Logos</h4>
                     <div class="image-upload-grid">
-                        <div class="image-upload-card" id="logoEcwCard">
-                            <input type="file" id="logoEcwInput" accept="image/*" data-slot="logo_ecw">
-                            <img class="image-preview" id="logoEcwPreview" src="" alt="eCargoWorld Logo" style="display:none;">
-                            <div class="upload-placeholder" id="logoEcwPlaceholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">eCargoWorld Logo</div><div class="upload-hint">White background. PNG/SVG.</div></div>
-                            <div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="logo_ecw" style="display:none;">Remove</button></div>
-                        </div>
-                        <div class="image-upload-card" id="logoAlsCard">
-                            <input type="file" id="logoAlsInput" accept="image/*" data-slot="logo_als">
-                            <img class="image-preview" id="logoAlsPreview" src="" alt="ALS Logo" style="display:none;">
-                            <div class="upload-placeholder" id="logoAlsPlaceholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">ALS Logo</div><div class="upload-hint">Transparent. PNG/SVG.</div></div>
-                            <div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="logo_als" style="display:none;">Remove</button></div>
-                        </div>
+                        <div class="image-upload-card" id="logoEcwCard"><input type="file" id="logoEcwInput" accept="image/*" data-slot="logo_ecw"><img class="image-preview" id="logoEcwPreview" src="" alt="eCargoWorld Logo" style="display:none;"><div class="upload-placeholder" id="logoEcwPlaceholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">eCargoWorld Logo</div><div class="upload-hint">White background. PNG/SVG.</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="logo_ecw" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="logoAlsCard"><input type="file" id="logoAlsInput" accept="image/*" data-slot="logo_als"><img class="image-preview" id="logoAlsPreview" src="" alt="ALS Logo" style="display:none;"><div class="upload-placeholder" id="logoAlsPlaceholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">ALS Logo</div><div class="upload-hint">Transparent. PNG/SVG.</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="logo_als" style="display:none;">Remove</button></div></div>
                     </div>
                 </div>
-
                 <div class="settings-group">
                     <h4>Website Images</h4>
                     <div class="image-upload-grid">
-                        <div class="image-upload-card" id="heroImageCard"><input type="file" id="heroImageInput" accept="image/*" data-slot="hero_image"><img class="image-preview" id="heroImagePreview" src="" alt="Hero Background" style="display:none;"><div class="upload-placeholder" id="heroImagePlaceholder"><div class="upload-icon">🖼️</div><div class="upload-label-text">Hero Background</div><div class="upload-hint">1920×1080px. Dark image.</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="hero_image" style="display:none;">Remove</button></div></div>
-                        <div class="image-upload-card" id="whyUsImageCard"><input type="file" id="whyUsImageInput" accept="image/*" data-slot="why_us_image"><img class="image-preview" id="whyUsImagePreview" src="" alt="About Background" style="display:none;"><div class="upload-placeholder" id="whyUsImagePlaceholder"><div class="upload-icon">🖼️</div><div class="upload-label-text">About Background</div><div class="upload-hint">1920×1080px. Dark.</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="why_us_image" style="display:none;">Remove</button></div></div>
-                        <div class="image-upload-card" id="serviceAirImageCard"><input type="file" id="serviceAirInput" accept="image/*" data-slot="service_air"><img class="image-preview" id="serviceAirPreview" src="" alt="Air Freight" style="display:none;"><div class="upload-placeholder" id="serviceAirPlaceholder"><div class="upload-icon">✈️</div><div class="upload-label-text">Air Freight</div><div class="upload-hint">800×600px</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="service_air" style="display:none;">Remove</button></div></div>
-                        <div class="image-upload-card" id="serviceSeaImageCard"><input type="file" id="serviceSeaInput" accept="image/*" data-slot="service_sea"><img class="image-preview" id="serviceSeaPreview" src="" alt="Sea Freight" style="display:none;"><div class="upload-placeholder" id="serviceSeaPlaceholder"><div class="upload-icon">🚢</div><div class="upload-label-text">Sea Freight</div><div class="upload-hint">800×600px</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="service_sea" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="heroImageCard"><input type="file" id="heroImageInput" accept="image/*" data-slot="hero_image"><img class="image-preview" id="heroImagePreview" src="" alt="Hero" style="display:none;"><div class="upload-placeholder" id="heroImagePlaceholder"><div class="upload-icon">🖼️</div><div class="upload-label-text">Hero Background</div><div class="upload-hint">1920×1080px</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="hero_image" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="whyUsImageCard"><input type="file" id="whyUsImageInput" accept="image/*" data-slot="why_us_image"><img class="image-preview" id="whyUsImagePreview" src="" alt="About" style="display:none;"><div class="upload-placeholder" id="whyUsImagePlaceholder"><div class="upload-icon">🖼️</div><div class="upload-label-text">About Background</div><div class="upload-hint">1920×1080px</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="why_us_image" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="serviceAirImageCard"><input type="file" id="serviceAirInput" accept="image/*" data-slot="service_air"><img class="image-preview" id="serviceAirPreview" src="" alt="Air" style="display:none;"><div class="upload-placeholder" id="serviceAirPlaceholder"><div class="upload-icon">✈️</div><div class="upload-label-text">Air Freight</div><div class="upload-hint">800×600px</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="service_air" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="serviceSeaImageCard"><input type="file" id="serviceSeaInput" accept="image/*" data-slot="service_sea"><img class="image-preview" id="serviceSeaPreview" src="" alt="Sea" style="display:none;"><div class="upload-placeholder" id="serviceSeaPlaceholder"><div class="upload-icon">🚢</div><div class="upload-label-text">Sea Freight</div><div class="upload-hint">800×600px</div></div><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="service_sea" style="display:none;">Remove</button></div></div>
                     </div>
                 </div>
-
                 <div class="settings-group">
                     <h4>Certification Logos</h4>
                     <div class="image-upload-grid">
-                        <div class="image-upload-card" id="cert1Card"><input type="file" id="cert1Input" accept="image/*" data-slot="cert_1"><img class="image-preview" id="cert1Preview" src="" alt="Cert 1" style="display:none;"><div class="upload-placeholder" id="cert1Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Certification 1</div></div><input type="text" class="cert-name-input" id="cert1Name" placeholder="Name (e.g. IATA)"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_1" style="display:none;">Remove</button></div></div>
-                        <div class="image-upload-card" id="cert2Card"><input type="file" id="cert2Input" accept="image/*" data-slot="cert_2"><img class="image-preview" id="cert2Preview" src="" alt="Cert 2" style="display:none;"><div class="upload-placeholder" id="cert2Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Certification 2</div></div><input type="text" class="cert-name-input" id="cert2Name" placeholder="Name (e.g. PIFFA)"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_2" style="display:none;">Remove</button></div></div>
-                        <div class="image-upload-card" id="cert3Card"><input type="file" id="cert3Input" accept="image/*" data-slot="cert_3"><img class="image-preview" id="cert3Preview" src="" alt="Cert 3" style="display:none;"><div class="upload-placeholder" id="cert3Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Certification 3</div></div><input type="text" class="cert-name-input" id="cert3Name" placeholder="Name (e.g. AAC)"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_3" style="display:none;">Remove</button></div></div>
-                        <div class="image-upload-card" id="cert4Card"><input type="file" id="cert4Input" accept="image/*" data-slot="cert_4"><img class="image-preview" id="cert4Preview" src="" alt="Cert 4" style="display:none;"><div class="upload-placeholder" id="cert4Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Certification 4</div></div><input type="text" class="cert-name-input" id="cert4Name" placeholder="Name (e.g. LCCI)"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_4" style="display:none;">Remove</button></div></div>
-                        <div class="image-upload-card" id="cert5Card"><input type="file" id="cert5Input" accept="image/*" data-slot="cert_5"><img class="image-preview" id="cert5Preview" src="" alt="Cert 5" style="display:none;"><div class="upload-placeholder" id="cert5Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Certification 5</div></div><input type="text" class="cert-name-input" id="cert5Name" placeholder="Name (e.g. NAPLCC)"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Upload Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_5" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="cert1Card"><input type="file" id="cert1Input" accept="image/*" data-slot="cert_1"><img class="image-preview" id="cert1Preview" src="" style="display:none;"><div class="upload-placeholder" id="cert1Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Cert 1</div></div><input type="text" class="cert-name-input" id="cert1Name" placeholder="Name"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_1" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="cert2Card"><input type="file" id="cert2Input" accept="image/*" data-slot="cert_2"><img class="image-preview" id="cert2Preview" src="" style="display:none;"><div class="upload-placeholder" id="cert2Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Cert 2</div></div><input type="text" class="cert-name-input" id="cert2Name" placeholder="Name"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_2" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="cert3Card"><input type="file" id="cert3Input" accept="image/*" data-slot="cert_3"><img class="image-preview" id="cert3Preview" src="" style="display:none;"><div class="upload-placeholder" id="cert3Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Cert 3</div></div><input type="text" class="cert-name-input" id="cert3Name" placeholder="Name"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_3" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="cert4Card"><input type="file" id="cert4Input" accept="image/*" data-slot="cert_4"><img class="image-preview" id="cert4Preview" src="" style="display:none;"><div class="upload-placeholder" id="cert4Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Cert 4</div></div><input type="text" class="cert-name-input" id="cert4Name" placeholder="Name"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_4" style="display:none;">Remove</button></div></div>
+                        <div class="image-upload-card" id="cert5Card"><input type="file" id="cert5Input" accept="image/*" data-slot="cert_5"><img class="image-preview" id="cert5Preview" src="" style="display:none;"><div class="upload-placeholder" id="cert5Placeholder"><div class="upload-icon">🏷️</div><div class="upload-label-text">Cert 5</div></div><input type="text" class="cert-name-input" id="cert5Name" placeholder="Name"><div class="image-actions"><button class="btn btn-outline-dark btn-sm upload-trigger">Logo</button><button class="btn btn-outline-dark btn-sm remove-image" data-slot="cert_5" style="display:none;">Remove</button></div></div>
                     </div>
                 </div>
-
                 <div class="save-bar"><button class="btn btn-amber btn-lg" id="saveBranding">Save All Images</button></div>
             </section>
 
@@ -136,18 +134,33 @@
                     <div class="form-grid">
                         <div class="form-group"><label>Company Name</label><input type="text" id="settingCompanyName" value="eCargoWorld"></div>
                         <div class="form-group"><label>Company Email</label><input type="email" id="settingCompanyEmail" value="info@ecargopk.com"></div>
-                        <div class="form-group"><label>Phone Number</label><input type="tel" id="settingCompanyPhone" value="+92 42 3572 2342-43"></div>
+                        <div class="form-group"><label>Phone</label><input type="tel" id="settingCompanyPhone" value="+92 42 3572 2342-43"></div>
                         <div class="form-group"><label>Address</label><input type="text" id="settingCompanyAddress" value="Lahore, Pakistan"></div>
-                        <div class="form-group"><label>USD to PKR Exchange Rate</label><input type="number" id="settingUsdPkr" value="278.50" step="0.01"></div>
+                        <div class="form-group"><label>USD/PKR Rate</label><input type="number" id="settingUsdPkr" value="278.50" step="0.01"></div>
                     </div>
                 </div>
                 <div class="save-bar"><button class="btn btn-amber btn-lg" id="saveSettings">Save Settings</button></div>
             </section>
 
+            <!-- TEAMS SECTION -->
+            <section class="admin-section" id="sectionTeams">
+                <h3>Manage Teams</h3>
+                <p style="color: var(--text-tertiary); margin-bottom: 24px;">Create and manage teams to organize your employees.</p>
+                <div class="settings-group">
+                    <h4>All Teams</h4>
+                    <div id="teamsListContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading teams...</p></div>
+                    <div class="add-team-row">
+                        <input type="text" id="newTeamName" placeholder="Team name (e.g. Export Team)">
+                        <input type="text" id="newTeamDesc" placeholder="Description (optional)">
+                        <button class="btn btn-amber btn-sm" id="btnAddTeam">+ Add Team</button>
+                    </div>
+                </div>
+            </section>
+
             <!-- USERS SECTION -->
             <section class="admin-section" id="sectionUsers">
                 <h3>Manage Users</h3>
-                <p style="color: var(--text-tertiary); margin-bottom: 24px;">Edit display names, roles, and permissions for all team members.</p>
+                <p style="color: var(--text-tertiary); margin-bottom: 24px;">Edit display names, roles, and team assignments.</p>
                 <div class="settings-group">
                     <h4>All Users</h4>
                     <div id="usersListContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading users...</p></div>
