@@ -53,11 +53,11 @@
         }
 
         var role = currentUser.profile ? currentUser.profile.role : 'employee';
-        isDirector = (role === 'director' || currentUser.profile.is_admin);
+        isDirector = (role === 'director' || (currentUser.profile && currentUser.profile.is_admin));
         isOpsManager = (role === 'operations_manager');
-        isManager = (role === 'manager' || isDirector);
+        isManager = (role === 'manager' || isDirector || isOpsManager);
         canAssignTasks = (isDirector || isOpsManager);
-        canAccessAdmin = (isManager || isDirector);
+        canAccessAdmin = (role === 'manager' || isDirector);
 
         updateUserUI();
         setupNavigation();
@@ -203,7 +203,6 @@
                 document.getElementById('tlArrived').textContent = counts.arrived || 0;
             }
 
-            // Load tasks for overview
             var taskQuery = db.from('tasks').select('*, shipments(awb_number, customer_name)').eq('status', 'pending').order('deadline', { ascending: true });
             if (!isDirector && !isManager && !isOpsManager) {
                 taskQuery = taskQuery.eq('assigned_to', currentUser.id);
@@ -219,7 +218,7 @@
                     var deadline = new Date(task.deadline);
                     var isOverdue = deadline < now;
                     if (isOverdue) overdueCount++; else todayCount++;
-                    html += '<div class="task-card-expanded" onclick="openTaskDetail(\'' + task.id + '\')" style="background:var(--bg-elevated);border-left:3px solid ' + (isOverdue ? 'var(--red)' : 'var(--orange)') + ';padding:14px;border-radius:var(--radius);margin-bottom:8px;cursor:pointer;transition:0.2s;">' +
+                    html += '<div onclick="openTaskDetail(\'' + task.id + '\')" style="background:var(--bg-elevated);border-left:3px solid ' + (isOverdue ? 'var(--red)' : 'var(--orange)') + ';padding:14px;border-radius:var(--radius);margin-bottom:8px;cursor:pointer;">' +
                         '<div style="display:flex;justify-content:space-between;align-items:start;">' +
                             '<div><strong>' + escapeHtml(task.name) + '</strong>' +
                             (task.shipments ? '<br><small style="color:var(--text-tertiary);">AWB: ' + task.shipments.awb_number + '</small>' : '') +
@@ -237,7 +236,6 @@
                 document.getElementById('countToday').textContent = '0';
             }
 
-            // Recent activity
             var ar = await db.from('shipments').select('*').order('updated_at', { ascending: false }).limit(4);
             if (ar.data) {
                 var feed = '';
@@ -308,7 +306,7 @@
         var html = '';
         statuses.forEach(function(s) {
             var isCurrent = s === currentStatus;
-            html += '<button onclick="changeShipmentStatus(\'' + shipmentId + '\',\'' + s + '\')" style="padding:12px;border-radius:var(--radius);cursor:pointer;border:2px solid ' + (isCurrent ? 'var(--accent)' : 'var(--border-medium)') + ';background:' + (isCurrent ? 'var(--accent-dim)' : 'var(--bg-elevated)') + ';color:var(--text-primary);font-family:inherit;text-align:left;">' + (isCurrent ? '● ' : '') + formatStatus(s) + '</button>';
+            html += '<button onclick="changeShipmentStatus(\'' + shipmentId + '\',\'' + s + '\')" style="padding:12px;border-radius:var(--radius);cursor:pointer;border:2px solid ' + (isCurrent ? 'var(--accent)' : 'var(--border-medium)') + ';background:' + (isCurrent ? 'var(--accent-dim)' : 'var(--bg-elevated)') + ';color:var(--text-primary);font-family:inherit;text-align:left;margin-bottom:4px;">' + (isCurrent ? '● ' : '') + formatStatus(s) + '</button>';
         });
         document.getElementById('statusPopupOptions').innerHTML = html;
         document.getElementById('statusPopupTitle').textContent = 'Change Status';
@@ -321,10 +319,6 @@
         window.loadShipmentsPage();
         loadDashboardOverview();
     };
-
-    document.getElementById('statusPopup')?.addEventListener('click', function(e) {
-        if (e.target === this) this.style.display = 'none';
-    });
 
     // ============ TASKS ============
     async function loadTasks() {
@@ -404,9 +398,13 @@
 
     window.deleteTask = async function(taskId) {
         if (!confirm('Delete this task?')) return;
-        await db.from('tasks').delete().eq('id', taskId);
-        loadTasks();
-        loadDashboardOverview();
+        try {
+            await db.from('tasks').delete().eq('id', taskId);
+            loadTasks();
+            loadDashboardOverview();
+        } catch(e) {
+            console.error('Delete failed:', e);
+        }
     };
 
     // ============ RATES ============
@@ -419,8 +417,80 @@
         }
         c.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">' +
             r.data.map(function(rt) {
-                return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;"><strong>' + escapeHtml(rt.airline) + '</strong><br>' + escapeHtml(rt.origin) + ' → ' + escapeHtml(rt.destination) + '<br><span style="color:var(--accent);font-size:1.2rem;font-weight:700;">$' + (rt.rate_per_kg_usd || 0).toFixed(2) + '/kg</span></div>';
+                return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;display:flex;justify-content:space-between;align-items:start;">' +
+                    '<div><strong>' + escapeHtml(rt.airline) + '</strong><br>' + escapeHtml(rt.origin) + ' → ' + escapeHtml(rt.destination) + '<br><span style="color:var(--accent);font-size:1.2rem;font-weight:700;">$' + (rt.rate_per_kg_usd || 0).toFixed(2) + '/kg</span></div>' +
+                    ((isManager || isDirector) ? '<div style="display:flex;gap:4px;"><button class="row-action-btn edit-rate-btn" data-id="' + rt.id + '">✎</button><button class="row-action-btn delete-rate-btn" data-id="' + rt.id + '" style="color:var(--red);">✕</button></div>' : '') +
+                    '</div>';
             }).join('') + '</div>';
+
+        document.querySelectorAll('.edit-rate-btn').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+                var rr = await db.from('airline_rates').select('*').eq('id', btn.dataset.id).single();
+                if (rr.data) openRateForm(rr.data);
+            });
+        });
+        document.querySelectorAll('.delete-rate-btn').forEach(function(btn) {
+            btn.addEventListener('click', async function() {
+                if (!confirm('Delete this rate?')) return;
+                await db.from('airline_rates').delete().eq('id', btn.dataset.id);
+                loadRates();
+            });
+        });
+    }
+
+    function openRateForm(rateData) {
+        var existing = document.getElementById('rateFormModal');
+        if (existing) existing.remove();
+        var isEdit = rateData && rateData.id;
+        var modal = document.createElement('div');
+        modal.id = 'rateFormModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;';
+        
+        modal.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);padding:28px;width:90%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">' +
+                '<h3 style="font-size:1.1rem;font-weight:700;">' + (isEdit ? 'Edit Rate' : 'Add Rate') + '</h3>' +
+                '<button onclick="document.getElementById(\'rateFormModal\').remove()" style="background:none;border:none;color:var(--text-tertiary);font-size:1.5rem;cursor:pointer;">&times;</button>' +
+            '</div>' +
+            '<form id="rateForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Airline</label><input type="text" id="rfAirline" value="' + escapeHtml(rateData?rateData.airline||'':'') + '" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
+                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Cargo Type</label><select id="rfCargoType" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"><option>general</option><option>perishable</option><option>pharma</option><option>dangerous</option><option>valuable</option></select></div>' +
+                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Origin</label><input type="text" id="rfOrigin" value="' + escapeHtml(rateData?rateData.origin||'':'') + '" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
+                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Destination</label><input type="text" id="rfDestination" value="' + escapeHtml(rateData?rateData.destination||'':'') + '" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
+                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Rate/kg (USD)</label><input type="number" id="rfRate" value="' + (rateData?rateData.rate_per_kg_usd||'':'') + '" step="0.01" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
+                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Surcharges</label><input type="number" id="rfSurcharges" value="' + (rateData?rateData.surcharges||'':'') + '" step="0.01" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
+                '<div style="grid-column:1/-1;display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">' +
+                    '<button type="button" onclick="document.getElementById(\'rateFormModal\').remove()" style="padding:10px 20px;background:transparent;border:1px solid var(--border-medium);color:var(--text-primary);border-radius:var(--radius);cursor:pointer;font-family:inherit;">Cancel</button>' +
+                    '<button type="submit" style="padding:10px 20px;background:var(--accent);color:#1A2E4A;border:none;border-radius:var(--radius);cursor:pointer;font-weight:600;font-family:inherit;">' + (isEdit?'Update':'Add Rate') + '</button>' +
+                '</div>' +
+            '</form></div>';
+        
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+        
+        document.getElementById('rateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+            var data = {
+                airline: document.getElementById('rfAirline').value.trim(),
+                origin: document.getElementById('rfOrigin').value.trim(),
+                destination: document.getElementById('rfDestination').value.trim(),
+                cargo_type: document.getElementById('rfCargoType').value,
+                rate_per_kg_usd: parseFloat(document.getElementById('rfRate').value) || 0,
+                surcharges: parseFloat(document.getElementById('rfSurcharges').value) || 0
+            };
+            try {
+                if (isEdit) await db.from('airline_rates').update(data).eq('id', rateData.id);
+                else await db.from('airline_rates').insert(data);
+                modal.remove();
+                loadRates();
+            } catch(err) {
+                alert('Error: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = isEdit ? 'Update' : 'Add Rate';
+            }
+        });
     }
 
     // ============ FLIGHTS ============
@@ -447,7 +517,6 @@
         });
     };
 
-    // Flight search
     document.getElementById('btnFlightSearch')?.addEventListener('click', async function() {
         var fn = document.getElementById('flightSearchInput').value.trim();
         if (!fn) return;
@@ -462,7 +531,9 @@
         var r = await db.from('profiles').select('*');
         var c = document.getElementById('teamContainer');
         if (!r.data || !r.data.length) { c.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No team members.</p>'; return; }
-        c.innerHTML = r.data.map(function(p) {
+        // Filter out website managers
+        var filtered = r.data.filter(function(p) { return p.role !== 'manager'; });
+        c.innerHTML = filtered.map(function(p) {
             return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">' +
                 '<div style="width:36px;height:36px;border-radius:50%;background:' + (p.is_admin || p.role==='director'?'var(--accent)':'var(--bg-tertiary)') + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:' + (p.is_admin||p.role==='director'?'#1A2E4A':'var(--text-primary)') + ';">' + (p.full_name||'?').charAt(0).toUpperCase() + '</div>' +
                 '<div><strong>' + escapeHtml(p.full_name) + '</strong><br><small style="color:var(--text-tertiary);">' + p.role + '</small></div></div>';
@@ -495,44 +566,8 @@
         }
     });
 
-    function openRateForm(rateData) {
-        var existing = document.getElementById('rateFormModal');
-        if (existing) existing.remove();
-        var isEdit = rateData && rateData.id;
-        var modal = document.createElement('div');
-        modal.id = 'rateFormModal';
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;';
-        modal.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);padding:28px;width:90%;max-width:500px;">' +
-            '<h3>' + (isEdit ? 'Edit Rate' : 'Add Rate') + '</h3>' +
-            '<form id="rateForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">' +
-                '<div><label>Airline</label><input type="text" id="rfAirline" value="' + escapeHtml(rateData?rateData.airline||'':'') + '" required></div>' +
-                '<div><label>Cargo Type</label><select id="rfCargoType"><option>general</option><option>perishable</option><option>pharma</option><option>dangerous</option><option>valuable</option></select></div>' +
-                '<div><label>Origin</label><input type="text" id="rfOrigin" value="' + escapeHtml(rateData?rateData.origin||'':'') + '" required></div>' +
-                '<div><label>Destination</label><input type="text" id="rfDestination" value="' + escapeHtml(rateData?rateData.destination||'':'') + '" required></div>' +
-                '<div><label>Rate/kg (USD)</label><input type="number" id="rfRate" value="' + (rateData?rateData.rate_per_kg_usd||'':'') + '" step="0.01" required></div>' +
-                '<div><label>Surcharges</label><input type="number" id="rfSurcharges" value="' + (rateData?rateData.surcharges||'':'') + '" step="0.01"></div>' +
-                '<div style="grid-column:1/-1;display:flex;gap:10px;justify-content:flex-end;">' +
-                    '<button type="button" onclick="this.closest(\'#rateFormModal\').remove()">Cancel</button>' +
-                    '<button type="submit" style="background:var(--accent);color:#1A2E4A;border:none;padding:10px 20px;border-radius:var(--radius);cursor:pointer;font-weight:600;">' + (isEdit?'Update':'Add') + '</button>' +
-                '</div>' +
-            '</form></div>';
-        document.body.appendChild(modal);
-        modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
-        document.getElementById('rateForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            var data = {
-                airline: document.getElementById('rfAirline').value.trim(),
-                origin: document.getElementById('rfOrigin').value.trim(),
-                destination: document.getElementById('rfDestination').value.trim(),
-                cargo_type: document.getElementById('rfCargoType').value,
-                rate_per_kg_usd: parseFloat(document.getElementById('rfRate').value) || 0,
-                surcharges: parseFloat(document.getElementById('rfSurcharges').value) || 0
-            };
-            if (isEdit) await db.from('airline_rates').update(data).eq('id', rateData.id);
-            else await db.from('airline_rates').insert(data);
-            modal.remove();
-            loadRates();
-        });
-    }
+    // Close popups on overlay click
+    document.getElementById('statusPopup')?.addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
+    document.getElementById('taskDetailPopup')?.addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
 
 })();
