@@ -13,7 +13,6 @@
 </head>
 <body>
 
-    <!-- ============ TOP COMMAND BAR ============ -->
     <header class="command-bar">
         <div class="command-left">
             <div class="brand-block">
@@ -24,13 +23,14 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
                     <span>Overview</span>
                 </button>
+                <button class="cmd-nav-item" data-screen="tasks" id="navTasks">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                    <span>Tasks</span>
+                    <span class="nav-badge" id="taskBadge" style="display:none;">0</span>
+                </button>
                 <button class="cmd-nav-item" data-screen="shipments">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 13V7l-4-4H5a2 2 0 00-2 2v14a2 2 0 002 2h6"/><path d="M16 3v4h4"/><circle cx="17" cy="18" r="3"/><path d="M19.5 20.5l2 2"/></svg>
                     <span>Shipments</span>
-                </button>
-                <button class="cmd-nav-item" data-screen="tasks">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-                    <span>Tasks</span>
                 </button>
                 <button class="cmd-nav-item" data-screen="rates">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
@@ -57,10 +57,9 @@
         </div>
     </header>
 
-    <!-- ============ MAIN CONTENT ============ -->
     <main class="app-main">
 
-        <!-- OVERVIEW SCREEN -->
+        <!-- OVERVIEW -->
         <section class="screen active" id="screenDashboard">
             <div class="urgency-strip">
                 <div class="urgency-item critical"><span class="urgency-count" id="countOverdue">0</span><span class="urgency-label">Overdue</span></div>
@@ -68,28 +67,43 @@
                 <div class="urgency-item info"><span class="urgency-count" id="countActive">0</span><span class="urgency-label">Active Shipments</span></div>
                 <div class="urgency-item success"><span class="urgency-count" id="countDelivered">0</span><span class="urgency-label">Delivered</span></div>
             </div>
-            <div class="dash-grid">
-                <div class="dash-card card-timeline">
-                    <div class="card-header"><h3>Shipment Status</h3></div>
+
+            <!-- TASK-FOCUSED LAYOUT: Tasks get the big card, rest secondary -->
+            <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+                <!-- Big Task Card -->
+                <div class="dash-card" style="grid-row:span 2;">
+                    <div class="card-header"><h3>Your Tasks</h3><span class="card-badge" id="taskCountBadge">0 pending</span></div>
+                    <div id="overviewTaskList"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading tasks...</p></div>
+                </div>
+                <!-- Shipment Timeline -->
+                <div class="dash-card">
+                    <div class="card-header"><h3>Shipments</h3></div>
                     <div class="timeline-track" id="timelineTrack">
                         <div class="timeline-stage"><div class="stage-dot active"></div><div class="stage-info"><span class="stage-count" id="tlConfirmed">0</span><span class="stage-name">Confirmed</span></div></div>
                         <div class="timeline-connector"></div>
-                        <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlBooked">0</span><span class="stage-name">Booked</span></div></div>
-                        <div class="timeline-connector"></div>
-                        <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlDeparted">0</span><span class="stage-name">Departed</span></div></div>
+                        <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlInTransit">0</span><span class="stage-name">In Transit</span></div></div>
                         <div class="timeline-connector"></div>
                         <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlArrived">0</span><span class="stage-name">Arrived</span></div></div>
                     </div>
                 </div>
-                <div class="dash-card card-urgent">
-                    <div class="card-header"><h3>Urgent Tasks</h3></div>
-                    <div class="task-list-urgent" id="urgentTaskList"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading tasks...</p></div>
-                </div>
-                <div class="dash-card card-feed">
-                    <div class="card-header"><h3>Recent Activity</h3></div>
-                    <div class="activity-feed" id="activityFeed"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading activity...</p></div>
+                <!-- Recent Activity -->
+                <div class="dash-card">
+                    <div class="card-header"><h3>Recent</h3></div>
+                    <div class="activity-feed" id="activityFeed"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading...</p></div>
                 </div>
             </div>
+        </section>
+
+        <!-- TASKS SCREEN -->
+        <section class="screen" id="screenTasks">
+            <div class="screen-toolbar">
+                <h2>All Tasks</h2>
+                <button class="btn btn-amber director-only" id="btnDelegateTask" style="display:none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Delegate Task
+                </button>
+            </div>
+            <div id="taskListContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading tasks...</p></div>
         </section>
 
         <!-- SHIPMENTS SCREEN -->
@@ -112,18 +126,6 @@
             </div>
         </section>
 
-        <!-- TASKS SCREEN -->
-        <section class="screen" id="screenTasks">
-            <div class="screen-toolbar">
-                <h2>Tasks</h2>
-                <button class="btn btn-amber director-only" id="btnDelegateTask" style="display:none;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Delegate Task
-                </button>
-            </div>
-            <div id="taskListContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading tasks...</p></div>
-        </section>
-
         <!-- RATES SCREEN -->
         <section class="screen" id="screenRates">
             <div class="screen-toolbar">
@@ -138,17 +140,63 @@
 
         <!-- FLIGHTS SCREEN (Director Only) -->
         <section class="screen" id="screenFlights">
-            <div class="screen-toolbar"><h2>Flight Tracking Center</h2></div>
+            <div class="screen-toolbar"><h2>Flight Tracking</h2></div>
+            <!-- Manual Flight Search -->
+            <div style="display:flex;gap:10px;margin-bottom:20px;">
+                <input type="text" id="flightSearchInput" placeholder="Enter flight number (e.g. EK612)" style="flex:1;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:Inter,sans-serif;">
+                <button class="btn btn-amber" id="btnFlightSearch">Search Flight</button>
+            </div>
+            <div id="flightSearchResult"></div>
+            <hr style="border-color:var(--border-subtle);margin:20px 0;">
+            <h3 style="margin-bottom:16px;">Tracked Shipment Flights</h3>
             <div id="flightsContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading flights...</p></div>
         </section>
 
-        <!-- TEAM SCREEN (Manager+) -->
+        <!-- TEAM SCREEN -->
         <section class="screen" id="screenTeam">
             <div class="screen-toolbar"><h2>Team Overview</h2></div>
             <div id="teamContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading team data...</p></div>
         </section>
 
     </main>
+
+    <!-- Task Detail Modal -->
+    <div class="popup-overlay" id="taskDetailPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;">
+        <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);padding:28px;width:90%;max-width:500px;max-height:80vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 id="taskDetailTitle">Task Details</h3>
+                <button onclick="document.getElementById('taskDetailPopup').style.display='none'" style="background:none;border:none;color:var(--text-tertiary);font-size:1.5rem;cursor:pointer;">&times;</button>
+            </div>
+            <div id="taskDetailContent"></div>
+            <div id="taskProofSection" style="margin-top:16px;"></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+                <button class="btn btn-outline-dark" onclick="document.getElementById('taskDetailPopup').style.display='none'">Close</button>
+                <button class="btn btn-amber" id="taskDetailCompleteBtn">Mark Complete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Change Popup -->
+    <div class="popup-overlay" id="statusPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;">
+        <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);padding:28px;width:90%;max-width:400px;">
+            <h3 id="statusPopupTitle" style="margin-bottom:16px;">Change Status</h3>
+            <div id="statusPopupOptions" style="display:flex;flex-direction:column;gap:6px;"></div>
+            <button onclick="document.getElementById('statusPopup').style.display='none'" style="margin-top:16px;width:100%;padding:10px;background:transparent;border:1px solid var(--border-medium);color:var(--text-secondary);border-radius:var(--radius);cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Notification Popup -->
+    <div id="notificationPopup" style="display:none;position:fixed;top:20px;right:20px;background:var(--bg-card);border:1px solid var(--accent);border-radius:var(--radius-lg);padding:20px;z-index:200;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,0.5);animation:slideDown 0.4s ease;">
+        <div style="display:flex;gap:12px;align-items:start;">
+            <div style="font-size:1.5rem;">🔔</div>
+            <div style="flex:1;">
+                <strong>New Task Assigned</strong>
+                <p id="notifTaskName" style="margin:4px 0;font-size:0.9rem;"></p>
+                <small id="notifTaskDeadline" style="color:var(--text-tertiary);"></small>
+            </div>
+            <button onclick="document.getElementById('notificationPopup').style.display='none'" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:1.2rem;">&times;</button>
+        </div>
+    </div>
 
     <script src="js/app.js"></script>
     <script src="js/shipments.js"></script>
