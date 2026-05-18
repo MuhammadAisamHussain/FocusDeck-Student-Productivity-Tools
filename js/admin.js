@@ -328,7 +328,12 @@
                     return '<div class="user-row" data-id="' + p.id + '">' +
                         '<div class="user-info"><strong>' + (p.full_name || 'Unnamed') + '</strong><small>' + (p.email || '') + '</small></div>' +
                         '<div class="editable-field"><label>Name</label><input type="text" class="user-name-input" value="' + (p.full_name || '') + '"></div>' +
-                        '<div class="editable-field"><label>Role</label><select class="user-role-select"><option value="employee"' + (p.role === 'employee' ? ' selected' : '') + '>Employee</option><option value="manager"' + (p.role === 'manager' ? ' selected' : '') + '>Manager</option><option value="director"' + (p.role === 'director' ? ' selected' : '') + '>Director</option></select></div>' +
+                        '<div class="editable-field"><label>Role</label><select class="user-role-select">' +
+                            '<option value="employee"' + (p.role === 'employee' ? ' selected' : '') + '>Employee</option>' +
+                            '<option value="operations_manager"' + (p.role === 'operations_manager' ? ' selected' : '') + '>Operations Manager</option>' +
+                            '<option value="manager"' + (p.role === 'manager' ? ' selected' : '') + '>Website Manager</option>' +
+                            '<option value="director"' + (p.role === 'director' ? ' selected' : '') + '>Director</option>' +
+                        '</select></div>' +
                         '<div class="editable-field"><label>Team</label><select class="user-team-select">' + teamOptsHtml + '</select></div>' +
                         '<button class="btn btn-amber btn-xs save-user-btn">Save</button>' +
                         '</div>';
