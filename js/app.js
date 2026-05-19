@@ -419,7 +419,7 @@
             r.data.map(function(rt) {
                 return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;display:flex;justify-content:space-between;align-items:start;">' +
                     '<div><strong>' + escapeHtml(rt.airline) + '</strong><br>' + escapeHtml(rt.origin) + ' → ' + escapeHtml(rt.destination) + '<br><span style="color:var(--accent);font-size:1.2rem;font-weight:700;">$' + (rt.rate_per_kg_usd || 0).toFixed(2) + '/kg</span></div>' +
-                    ((isManager || isDirector) ? '<div style="display:flex;gap:4px;"><button class="row-action-btn edit-rate-btn" data-id="' + rt.id + '">✎</button><button class="row-action-btn delete-rate-btn" data-id="' + rt.id + '" style="color:var(--red);">✕</button></div>' : '') +
+                    '<div style="display:flex;gap:4px;"><button class="row-action-btn edit-rate-btn" data-id="' + rt.id + '">✎</button><button class="row-action-btn delete-rate-btn" data-id="' + rt.id + '" style="color:var(--red);">✕</button></div>' +
                     '</div>';
             }).join('') + '</div>';
 
@@ -531,7 +531,6 @@
         var r = await db.from('profiles').select('*');
         var c = document.getElementById('teamContainer');
         if (!r.data || !r.data.length) { c.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No team members.</p>'; return; }
-        // Filter out website managers
         var filtered = r.data.filter(function(p) { return p.role !== 'manager'; });
         c.innerHTML = filtered.map(function(p) {
             return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">' +
@@ -562,7 +561,7 @@
             if (typeof TaskManager !== 'undefined') TaskManager.openDelegateModal();
         }
         if (e.target.id === 'btnAddRate' || e.target.closest('#btnAddRate')) {
-            if (isManager || isDirector) openRateForm(null);
+            openRateForm(null);
         }
     });
 
