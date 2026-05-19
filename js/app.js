@@ -181,9 +181,7 @@
         document.getElementById('notifTaskDeadline').textContent = 'Deadline: ' + new Date(task.deadline).toLocaleString();
         document.getElementById('notificationPopup').style.display = 'flex';
         if (notificationSound) notificationSound();
-        setTimeout(function() {
-            document.getElementById('notificationPopup').style.display = 'none';
-        }, 8000);
+        setTimeout(function() { document.getElementById('notificationPopup').style.display = 'none'; }, 8000);
     }
 
     // ============ DASHBOARD ============
@@ -216,10 +214,8 @@
 
             var html = '';
             
-            // Page header
             html += '<div class="page-header"><h1>Overview</h1><p>' + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + '</p></div>';
             
-            // Stats
             html += '<div class="stat-grid">';
             html += '<div class="stat-card red"><div class="stat-label">Overdue Tasks</div><div class="stat-value">' + overdueCount + '</div></div>';
             html += '<div class="stat-card amber"><div class="stat-label">Due Today</div><div class="stat-value">' + todayCount + '</div></div>';
@@ -227,7 +223,6 @@
             html += '<div class="stat-card green"><div class="stat-label">Delivered</div><div class="stat-value">' + deliveredCount + '</div></div>';
             html += '</div>';
 
-            // Tasks section
             html += '<div class="section-title">Tasks</div>';
             if (tasks.length > 0) {
                 html += '<div class="task-list">';
@@ -250,7 +245,6 @@
                 html += '<div class="empty-state">No pending tasks</div>';
             }
 
-            // Recent Shipments
             var recentResult = await db.from('shipments').select('*').order('updated_at', { ascending: false }).limit(5);
             if (recentResult.data && recentResult.data.length > 0) {
                 html += '<div class="section-title" style="margin-top:24px;">Recent Shipments</div>';
@@ -264,7 +258,7 @@
             main.innerHTML = html;
         } catch(e) {
             console.error('Dashboard error:', e);
-            main.innerHTML = '<div class="page-header"><h1>Overview</h1></div><div class="empty-state">Error loading dashboard. Please refresh.</div>';
+            main.innerHTML = '<div class="page-header"><h1>Overview</h1></div><div class="empty-state">Error loading dashboard.</div>';
         }
     }
 
@@ -356,7 +350,7 @@
                 html += '<td>' + (s.weight_kg ? s.weight_kg + ' kg' : '—') + '</td>';
                 html += '<td><span class="badge ' + s.status + '" onclick="showStatusPopup(\'' + s.id + '\',\'' + s.status + '\')" style="cursor:pointer;">' + formatStatus(s.status) + '</span></td>';
                 if (showProfit) {
-                    html += '<td style="color:' + (profit >= 0 ? 'var(--green)' : 'var(--red)') + ';font-weight:500;">' + (profit ? '$' + profit.toFixed(2) : '—') + '</td>';
+                    html += '<td style="color:' + (profit >= 0 ? '#22c55e' : '#e5484d') + ';font-weight:500;">' + (profit ? '$' + profit.toFixed(2) : '—') + '</td>';
                 }
                 html += '<td style="display:flex;gap:4px;">';
                 html += '<button class="btn btn-sm edit-shipment-btn" data-id="' + s.id + '">Edit</button>';
@@ -372,21 +366,17 @@
 
         main.innerHTML = html;
 
-        // Search
         document.getElementById('shipmentSearch')?.addEventListener('input', function() {
             var query = this.value.toLowerCase();
             document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
-                var text = row.textContent.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
+                row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
             });
         });
 
-        // New shipment
         document.getElementById('btnNewShipment')?.addEventListener('click', function() {
             if (typeof ShipmentManager !== 'undefined') ShipmentManager.openShipmentForm();
         });
 
-        // Edit shipment
         main.querySelectorAll('.edit-shipment-btn').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 var r = await db.from('shipments').select('*').eq('id', btn.dataset.id).single();
@@ -394,7 +384,6 @@
             });
         });
 
-        // Delete shipment
         main.querySelectorAll('.delete-shipment-btn').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 if (!confirm('Delete this shipment?')) return;
@@ -437,7 +426,7 @@
             '<p><strong>Created:</strong> ' + new Date(t.created_at).toLocaleString() + '</p>';
         
         if (t.proof_url) {
-            document.getElementById('taskProofSection').innerHTML = '<p><strong>Completion Proof:</strong></p><img src="' + t.proof_url + '" style="max-width:100%;border-radius:var(--radius-sm);margin-top:8px;">';
+            document.getElementById('taskProofSection').innerHTML = '<p><strong>Completion Proof:</strong></p><img src="' + t.proof_url + '" style="max-width:100%;border-radius:4px;margin-top:8px;">';
         } else {
             document.getElementById('taskProofSection').innerHTML = '';
         }
