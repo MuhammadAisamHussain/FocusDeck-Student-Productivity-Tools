@@ -1,5 +1,6 @@
 /* ============================================
    eCargoWorld — Minimalist Dashboard
+   Clean stylesheet — no old code
    ============================================ */
 
 :root {
@@ -239,7 +240,7 @@ body {
 .task-info .task-meta { font-size: 0.8rem; color: var(--text-tertiary); }
 .task-meta .overdue { color: var(--red); font-weight: 500; }
 
-.task-actions { display: flex; gap: 6px; align-items: center; }
+.task-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
 
 .task-status {
     font-size: 0.7rem;
@@ -331,7 +332,10 @@ body {
     font-size: 0.72rem;
     font-weight: 500;
     cursor: pointer;
+    transition: var(--transition);
 }
+
+.badge:hover { opacity: 0.8; }
 
 .badge.draft { background: #f5f5f5; color: var(--text-tertiary); }
 .badge.confirmed { background: var(--blue-bg); color: var(--blue); }
@@ -445,7 +449,7 @@ body {
     border-top: 1px solid var(--border);
 }
 
-/* Status options in modal */
+/* ============ STATUS OPTIONS IN MODAL ============ */
 .status-option {
     display: block;
     width: 100%;
@@ -502,10 +506,20 @@ body {
     to { transform: translateX(0); opacity: 1; }
 }
 
-/* ============ FORM ELEMENTS (for modals) ============ */
+/* ============ FORM ELEMENTS ============ */
 .form-group { margin-bottom: 12px; }
-.form-group label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.form-group input, .form-group select {
+.form-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.form-group input, 
+.form-group select {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid var(--border);
@@ -514,8 +528,11 @@ body {
     font-size: 0.85rem;
     outline: none;
     background: var(--surface);
+    color: var(--text);
 }
-.form-group input:focus, .form-group select:focus { border-color: #aaa; }
+
+.form-group input:focus, 
+.form-group select:focus { border-color: #aaa; }
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
@@ -540,27 +557,4 @@ body {
     .stat-grid { grid-template-columns: repeat(2,1fr); }
     .bento { grid-template-columns: 1fr; }
     .bento-card.wide { grid-column: span 1; }
-/* ============ FIX: Remove old screen system interference ============ */
-.screen { display: none; }
-.screen.active { display: block; }
-
-/* ============ FIX: Table row actions spacing ============ */
-.data-table td:last-child { white-space: nowrap; }
-
-/* ============ FIX: Modal form select styling ============ */
-.form-group select {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: inherit;
-    font-size: 0.85rem;
-    outline: none;
-    background: var(--surface);
-    color: var(--text);
 }
-.form-group select:focus { border-color: #aaa; }
-
-/* ============ FIX: Clickable status badge ============ */
-.badge { cursor: pointer; transition: var(--transition); }
-.badge:hover { opacity: 0.8; }
