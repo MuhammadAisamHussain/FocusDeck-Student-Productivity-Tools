@@ -1,5 +1,5 @@
 // ============================================
-// eCargoWorld — Dashboard Controller
+// eCargoWorld — Dashboard Controller (Minimalist)
 // ============================================
 
 (function() {
@@ -70,7 +70,7 @@
             FlightTracker.setDirector(isDirector);
         }
 
-        loadDashboardOverview();
+        renderScreen('dashboard');
         startTaskPolling();
     }
 
@@ -90,50 +90,48 @@
     function setupRoleFeatures() {
         var badge = document.getElementById('roleBadge');
         if (isDirector) {
-            badge.textContent = 'DIRECTOR';
+            badge.textContent = 'Director';
             document.querySelectorAll('.manager-only').forEach(function(el) { el.style.display = 'flex'; });
             document.querySelectorAll('.director-only').forEach(function(el) { el.style.display = 'flex'; });
-            document.querySelectorAll('.manager-only-col').forEach(function(el) { el.style.display = 'table-cell'; });
         } else if (isOpsManager) {
-            badge.textContent = 'OPS MANAGER';
+            badge.textContent = 'Ops Manager';
             document.querySelectorAll('.director-only').forEach(function(el) { el.style.display = 'flex'; });
-            document.querySelectorAll('.manager-only-col').forEach(function(el) { el.style.display = 'table-cell'; });
         } else if (isManager) {
-            badge.textContent = 'MANAGER';
+            badge.textContent = 'Manager';
             document.querySelectorAll('.manager-only').forEach(function(el) { el.style.display = 'flex'; });
-            document.querySelectorAll('.manager-only-col').forEach(function(el) { el.style.display = 'table-cell'; });
         } else {
-            badge.textContent = 'EMPLOYEE';
+            badge.textContent = 'Employee';
         }
     }
 
     function setupAdminButton() {
         var btn = document.getElementById('btnAdmin');
-        if (btn && canAccessAdmin) btn.style.display = 'inline-flex';
+        if (btn && canAccessAdmin) btn.style.display = 'block';
     }
 
     function setupNavigation() {
-        document.querySelectorAll('.cmd-nav-item').forEach(function(item) {
-            item.addEventListener('click', function() {
-                switchScreen(item.dataset.screen);
+        document.querySelectorAll('.sidebar-nav a').forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                var screen = item.dataset.screen;
+                if (!screen) return;
+                renderScreen(screen);
+                document.querySelectorAll('.sidebar-nav a').forEach(function(a) { a.classList.remove('active'); });
+                item.classList.add('active');
             });
         });
     }
 
-    function switchScreen(screenName) {
-        document.querySelectorAll('.cmd-nav-item').forEach(function(item) {
-            item.classList.toggle('active', item.dataset.screen === screenName);
-        });
-        document.querySelectorAll('.screen').forEach(function(s) {
-            s.classList.toggle('active', s.id === 'screen' + screenName.charAt(0).toUpperCase() + screenName.slice(1));
-        });
+    function renderScreen(screenName) {
         currentScreen = screenName;
-        if (screenName === 'dashboard') loadDashboardOverview();
-        if (screenName === 'shipments') loadShipmentsPage();
-        if (screenName === 'tasks') loadTasks();
-        if (screenName === 'rates') loadRates();
-        if (screenName === 'flights' && isDirector) loadFlightsPage();
-        if (screenName === 'team' && isManager) loadTeam();
+        var main = document.getElementById('mainContent');
+        
+        if (screenName === 'dashboard') renderDashboard(main);
+        if (screenName === 'tasks') loadTasks(main);
+        if (screenName === 'shipments') loadShipments(main);
+        if (screenName === 'rates') loadRates(main);
+        if (screenName === 'flights') loadFlights(main);
+        if (screenName === 'team') loadTeam(main);
     }
 
     function setupLogout() {
@@ -159,8 +157,7 @@
             if (!currentUser) return;
             var r = await db.from('tasks').select('*').eq('assigned_to', currentUser.id).eq('status', 'pending').gt('created_at', lastTaskCheck);
             if (r.data && r.data.length > 0) {
-                var task = r.data[0];
-                showNotification(task);
+                showNotification(r.data[0]);
                 lastTaskCheck = new Date().toISOString();
                 updateTaskBadge();
             }
@@ -173,7 +170,7 @@
         var badge = document.getElementById('taskBadge');
         if (badge && r.count > 0) {
             badge.textContent = r.count;
-            badge.style.display = 'flex';
+            badge.style.display = 'inline';
         } else if (badge) {
             badge.style.display = 'none';
         }
@@ -182,120 +179,227 @@
     function showNotification(task) {
         document.getElementById('notifTaskName').textContent = task.name;
         document.getElementById('notifTaskDeadline').textContent = 'Deadline: ' + new Date(task.deadline).toLocaleString();
-        document.getElementById('notificationPopup').style.display = 'block';
+        document.getElementById('notificationPopup').style.display = 'flex';
         if (notificationSound) notificationSound();
         setTimeout(function() {
             document.getElementById('notificationPopup').style.display = 'none';
         }, 8000);
     }
 
-    // ============ DASHBOARD OVERVIEW ============
-    async function loadDashboardOverview() {
+    // ============ DASHBOARD ============
+    async function renderDashboard(main) {
+        main.innerHTML = '<div class="page-header"><h1>Overview</h1><p>Loading...</p></div>';
+        
         try {
-            var r = await db.from('shipments').select('status');
-            if (r.data) {
-                var counts = {};
-                r.data.forEach(function(s) { counts[s.status] = (counts[s.status] || 0) + 1; });
-                document.getElementById('countActive').textContent = (counts.confirmed || 0) + (counts.booked || 0) + (counts.departed || 0) + (counts.in_transit || 0);
-                document.getElementById('countDelivered').textContent = counts.delivered || 0;
-                document.getElementById('tlConfirmed').textContent = (counts.confirmed || 0) + (counts.booked || 0);
-                document.getElementById('tlInTransit').textContent = (counts.departed || 0) + (counts.in_transit || 0);
-                document.getElementById('tlArrived').textContent = counts.arrived || 0;
+            var shipmentsResult = await db.from('shipments').select('status');
+            var counts = {};
+            if (shipmentsResult.data) {
+                shipmentsResult.data.forEach(function(s) { counts[s.status] = (counts[s.status] || 0) + 1; });
             }
 
             var taskQuery = db.from('tasks').select('*, shipments(awb_number, customer_name)').eq('status', 'pending').order('deadline', { ascending: true });
             if (!isDirector && !isManager && !isOpsManager) {
                 taskQuery = taskQuery.eq('assigned_to', currentUser.id);
             }
-            var taskResult = await taskQuery.limit(10);
+            var taskResult = await taskQuery.limit(20);
+            var tasks = taskResult.data || [];
+
+            var now = new Date();
+            var overdueCount = 0, todayCount = 0;
+            tasks.forEach(function(t) {
+                if (new Date(t.deadline) < now) overdueCount++;
+                else todayCount++;
+            });
+
+            var activeCount = (counts.confirmed || 0) + (counts.booked || 0) + (counts.departed || 0) + (counts.in_transit || 0);
+            var deliveredCount = counts.delivered || 0;
+
+            var html = '';
             
-            var taskContainer = document.getElementById('overviewTaskList');
-            if (taskResult.data && taskResult.data.length > 0) {
-                var now = new Date();
-                var overdueCount = 0, todayCount = 0;
-                var html = '';
-                taskResult.data.forEach(function(task) {
-                    var deadline = new Date(task.deadline);
-                    var isOverdue = deadline < now;
-                    if (isOverdue) overdueCount++; else todayCount++;
-                    html += '<div onclick="openTaskDetail(\'' + task.id + '\')" style="background:var(--bg-elevated);border-left:3px solid ' + (isOverdue ? 'var(--red)' : 'var(--orange)') + ';padding:14px;border-radius:var(--radius);margin-bottom:8px;cursor:pointer;">' +
-                        '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                            '<div><strong>' + escapeHtml(task.name) + '</strong>' +
-                            (task.shipments ? '<br><small style="color:var(--text-tertiary);">AWB: ' + task.shipments.awb_number + '</small>' : '') +
-                            '<br><small style="color:' + (isOverdue ? 'var(--red)' : 'var(--text-tertiary)') + ';">' + formatDeadline(task.deadline) + '</small></div>' +
-                            '<span class="status-badge status-' + (task.priority === 'critical' ? 'draft' : 'confirmed') + '" style="font-size:0.7rem;">' + task.priority + '</span>' +
-                        '</div></div>';
+            // Page header
+            html += '<div class="page-header"><h1>Overview</h1><p>' + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + '</p></div>';
+            
+            // Stats
+            html += '<div class="stat-grid">';
+            html += '<div class="stat-card red"><div class="stat-label">Overdue Tasks</div><div class="stat-value">' + overdueCount + '</div></div>';
+            html += '<div class="stat-card amber"><div class="stat-label">Due Today</div><div class="stat-value">' + todayCount + '</div></div>';
+            html += '<div class="stat-card blue"><div class="stat-label">Active Shipments</div><div class="stat-value">' + activeCount + '</div></div>';
+            html += '<div class="stat-card green"><div class="stat-label">Delivered</div><div class="stat-value">' + deliveredCount + '</div></div>';
+            html += '</div>';
+
+            // Tasks section
+            html += '<div class="section-title">Tasks</div>';
+            if (tasks.length > 0) {
+                html += '<div class="task-list">';
+                tasks.forEach(function(t) {
+                    var isOverdue = new Date(t.deadline) < now;
+                    html += '<div class="task-item" onclick="openTaskDetail(\'' + t.id + '\')">';
+                    html += '<div class="task-priority ' + (t.priority === 'critical' ? 'critical' : t.priority === 'high' ? 'high' : 'medium') + '"></div>';
+                    html += '<div class="task-info"><div class="task-name">' + escapeHtml(t.name) + '</div>';
+                    html += '<div class="task-meta">' + (t.shipments ? t.shipments.awb_number : '—') + ' · <span class="' + (isOverdue ? 'overdue' : '') + '">' + formatDeadline(t.deadline) + '</span></div></div>';
+                    html += '<div class="task-actions">';
+                    html += '<span class="task-status pending">Pending</span>';
+                    if (t.status !== 'completed') {
+                        html += '<button class="btn btn-sm" onclick="event.stopPropagation();completeTask(\'' + t.id + '\')">Done</button>';
+                    }
+                    html += '<button class="btn btn-sm danger" onclick="event.stopPropagation();deleteTask(\'' + t.id + '\')" title="Delete">✕</button>';
+                    html += '</div></div>';
                 });
-                taskContainer.innerHTML = html;
-                document.getElementById('countOverdue').textContent = overdueCount;
-                document.getElementById('countToday').textContent = todayCount;
-                document.getElementById('taskCountBadge').textContent = taskResult.data.length + ' pending';
+                html += '</div>';
             } else {
-                taskContainer.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:20px;">No pending tasks</p>';
-                document.getElementById('countOverdue').textContent = '0';
-                document.getElementById('countToday').textContent = '0';
+                html += '<div class="empty-state">No pending tasks</div>';
             }
 
-            var ar = await db.from('shipments').select('*').order('updated_at', { ascending: false }).limit(4);
-            if (ar.data) {
-                var feed = '';
-                ar.data.forEach(function(s) {
-                    feed += '<div class="feed-item"><div class="feed-icon ' + (s.status === 'arrived' ? 'arrived' : s.status === 'departed' || s.status === 'in_transit' ? 'departed' : 'created') + '"></div><div class="feed-content"><p><strong>' + escapeHtml(s.awb_number || 'Draft') + '</strong> ' + formatStatus(s.status) + '</p><span class="feed-time">' + timeAgo(s.updated_at) + '</span></div></div>';
+            // Recent Shipments
+            var recentResult = await db.from('shipments').select('*').order('updated_at', { ascending: false }).limit(5);
+            if (recentResult.data && recentResult.data.length > 0) {
+                html += '<div class="section-title" style="margin-top:24px;">Recent Shipments</div>';
+                html += '<table class="data-table"><thead><tr><th>AWB</th><th>Customer</th><th>Route</th><th>Status</th></tr></thead><tbody>';
+                recentResult.data.forEach(function(s) {
+                    html += '<tr><td><span class="mono">' + escapeHtml(s.awb_number || 'Draft') + '</span></td><td>' + escapeHtml(s.customer_name) + '</td><td>' + escapeHtml(s.origin) + ' → ' + escapeHtml(s.destination) + '</td><td><span class="badge ' + s.status + '">' + formatStatus(s.status) + '</span></td></tr>';
                 });
-                document.getElementById('activityFeed').innerHTML = feed;
+                html += '</tbody></table>';
             }
-        } catch(e) { console.error('Dashboard error:', e); }
+
+            main.innerHTML = html;
+        } catch(e) {
+            console.error('Dashboard error:', e);
+            main.innerHTML = '<div class="page-header"><h1>Overview</h1></div><div class="empty-state">Error loading dashboard. Please refresh.</div>';
+        }
     }
 
-    window.loadDashboardOverview = loadDashboardOverview;
+    window.loadDashboardOverview = function() { renderDashboard(document.getElementById('mainContent')); };
 
-    // ============ SHIPMENTS ============
-    window.loadShipmentsPage = async function() {
-        var filterStatus = document.getElementById('filterStatus');
-        var query = db.from('shipments').select('*');
-        if (filterStatus && filterStatus.value) query = query.eq('status', filterStatus.value);
-        var result = await query.order('created_at', { ascending: false });
-        var shipments = result.data || [];
-        var tbody = document.getElementById('shipmentTableBody');
-        if (!shipments.length) {
-            tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>No shipments found.</p></div></td></tr>';
-            return;
+    // ============ TASKS SCREEN ============
+    async function loadTasks(main) {
+        main.innerHTML = '<div class="page-header"><h1>Tasks</h1><p>Loading...</p></div>';
+        
+        var query = db.from('tasks').select('*, shipments(awb_number, customer_name)').order('deadline', { ascending: true });
+        if (!isDirector && !isManager && !isOpsManager) query = query.eq('assigned_to', currentUser.id);
+        var r = await query;
+        var tasks = r.data || [];
+
+        var html = '<div class="page-header"><h1>Tasks</h1><p>' + tasks.length + ' tasks</p></div>';
+        
+        if (canAssignTasks) {
+            html += '<div style="margin-bottom:16px;"><button class="btn primary" id="btnDelegateTask">+ Delegate Task</button></div>';
         }
+
+        if (tasks.length > 0) {
+            var pendingTasks = tasks.filter(function(t) { return t.status === 'pending'; });
+            var doneTasks = tasks.filter(function(t) { return t.status === 'completed'; });
+
+            if (pendingTasks.length > 0) {
+                html += '<div class="section-title">Pending (' + pendingTasks.length + ')</div>';
+                html += '<div class="task-list">';
+                pendingTasks.forEach(function(t) {
+                    var isOverdue = new Date(t.deadline) < new Date();
+                    html += '<div class="task-item" onclick="openTaskDetail(\'' + t.id + '\')">';
+                    html += '<div class="task-priority ' + (t.priority === 'critical' ? 'critical' : t.priority === 'high' ? 'high' : 'medium') + '"></div>';
+                    html += '<div class="task-info"><div class="task-name">' + escapeHtml(t.name) + '</div>';
+                    html += '<div class="task-meta">' + (t.shipments ? t.shipments.awb_number : '—') + ' · <span class="' + (isOverdue ? 'overdue' : '') + '">' + formatDeadline(t.deadline) + '</span></div></div>';
+                    html += '<div class="task-actions">';
+                    html += '<span class="task-status pending">Pending</span>';
+                    html += '<button class="btn btn-sm" onclick="event.stopPropagation();completeTask(\'' + t.id + '\')">Done</button>';
+                    html += '<button class="btn btn-sm danger" onclick="event.stopPropagation();deleteTask(\'' + t.id + '\')">✕</button>';
+                    html += '</div></div>';
+                });
+                html += '</div>';
+            }
+
+            if (doneTasks.length > 0) {
+                html += '<div class="section-title" style="margin-top:24px;">Completed (' + doneTasks.length + ')</div>';
+                html += '<div class="task-list">';
+                doneTasks.forEach(function(t) {
+                    html += '<div class="task-item" onclick="openTaskDetail(\'' + t.id + '\')">';
+                    html += '<div class="task-priority medium"></div>';
+                    html += '<div class="task-info"><div class="task-name">' + escapeHtml(t.name) + '</div>';
+                    html += '<div class="task-meta">' + (t.shipments ? t.shipments.awb_number : '—') + ' · Completed</div></div>';
+                    html += '<span class="task-status done">Done</span></div>';
+                });
+                html += '</div>';
+            }
+        } else {
+            html += '<div class="empty-state">No tasks assigned</div>';
+        }
+
+        main.innerHTML = html;
+
+        document.getElementById('btnDelegateTask')?.addEventListener('click', function() {
+            if (typeof TaskManager !== 'undefined') TaskManager.openDelegateModal();
+        });
+    }
+
+    // ============ SHIPMENTS SCREEN ============
+    async function loadShipments(main) {
+        main.innerHTML = '<div class="page-header"><h1>Shipments</h1><p>Loading...</p></div>';
+        
+        var result = await db.from('shipments').select('*').order('created_at', { ascending: false });
+        var shipments = result.data || [];
         var showProfit = isManager || isDirector;
-        tbody.innerHTML = shipments.map(function(s) {
-            var profit = (s.revenue || 0) - (s.cost || 0);
-            var profitCol = showProfit ? '<td class="' + (profit >= 0 ? 'profit-positive' : 'profit-negative') + '">' + (profit ? '$' + profit.toFixed(2) : '—') + '</td>' : '';
-            return '<tr>' +
-                '<td><span class="awb-mono">' + escapeHtml(s.awb_number || 'Draft') + '</span></td>' +
-                '<td>' + escapeHtml(s.customer_name) + '</td>' +
-                '<td>' + escapeHtml(s.origin) + ' → ' + escapeHtml(s.destination) + '</td>' +
-                '<td>' + escapeHtml(s.airline || '—') + '</td>' +
-                '<td>' + (s.weight_kg ? s.weight_kg + ' kg' : '—') + '</td>' +
-                '<td><span class="status-badge status-' + s.status + '" onclick="showStatusPopup(\'' + s.id + '\',\'' + s.status + '\')" style="cursor:pointer;">' + formatStatus(s.status) + ' ▼</span></td>' +
-                profitCol +
-                '<td><div class="row-actions">' +
-                    '<button class="row-action-btn edit-shipment-btn" data-id="' + s.id + '">✎</button>' +
-                    ((isManager || isDirector || isOpsManager) ? '<button class="row-action-btn delete-shipment-btn" data-id="' + s.id + '" style="color:var(--red);">✕</button>' : '') +
-                '</div></td></tr>';
-        }).join('');
 
-        bindShipmentActions();
-        populateFilterDropdown(filterStatus);
-    };
+        var html = '<div class="page-header"><h1>Shipments</h1><p>' + shipments.length + ' shipments</p></div>';
+        html += '<div class="search-bar"><input type="text" id="shipmentSearch" placeholder="Search by AWB, customer, or airline..."><button class="btn primary" id="btnNewShipment">+ New Shipment</button></div>';
 
-    function bindShipmentActions() {
-        document.querySelectorAll('.edit-shipment-btn').forEach(function(btn) {
+        if (shipments.length > 0) {
+            html += '<table class="data-table"><thead><tr><th>AWB</th><th>Customer</th><th>Route</th><th>Airline</th><th>Weight</th><th>Status</th>';
+            if (showProfit) html += '<th>Profit</th>';
+            html += '<th></th></tr></thead><tbody>';
+            
+            shipments.forEach(function(s) {
+                var profit = (s.revenue || 0) - (s.cost || 0);
+                html += '<tr>';
+                html += '<td><span class="mono">' + escapeHtml(s.awb_number || 'Draft') + '</span></td>';
+                html += '<td>' + escapeHtml(s.customer_name) + '</td>';
+                html += '<td>' + escapeHtml(s.origin) + ' → ' + escapeHtml(s.destination) + '</td>';
+                html += '<td>' + escapeHtml(s.airline || '—') + '</td>';
+                html += '<td>' + (s.weight_kg ? s.weight_kg + ' kg' : '—') + '</td>';
+                html += '<td><span class="badge ' + s.status + '" onclick="showStatusPopup(\'' + s.id + '\',\'' + s.status + '\')" style="cursor:pointer;">' + formatStatus(s.status) + '</span></td>';
+                if (showProfit) {
+                    html += '<td style="color:' + (profit >= 0 ? 'var(--green)' : 'var(--red)') + ';font-weight:500;">' + (profit ? '$' + profit.toFixed(2) : '—') + '</td>';
+                }
+                html += '<td style="display:flex;gap:4px;">';
+                html += '<button class="btn btn-sm edit-shipment-btn" data-id="' + s.id + '">Edit</button>';
+                if (isManager || isDirector || isOpsManager) {
+                    html += '<button class="btn btn-sm danger delete-shipment-btn" data-id="' + s.id + '">✕</button>';
+                }
+                html += '</td></tr>';
+            });
+            html += '</tbody></table>';
+        } else {
+            html += '<div class="empty-state">No shipments found</div>';
+        }
+
+        main.innerHTML = html;
+
+        // Search
+        document.getElementById('shipmentSearch')?.addEventListener('input', function() {
+            var query = this.value.toLowerCase();
+            document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
+                var text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // New shipment
+        document.getElementById('btnNewShipment')?.addEventListener('click', function() {
+            if (typeof ShipmentManager !== 'undefined') ShipmentManager.openShipmentForm();
+        });
+
+        // Edit shipment
+        main.querySelectorAll('.edit-shipment-btn').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 var r = await db.from('shipments').select('*').eq('id', btn.dataset.id).single();
                 if (r.data && typeof ShipmentManager !== 'undefined') ShipmentManager.openShipmentForm(r.data);
             });
         });
-        document.querySelectorAll('.delete-shipment-btn').forEach(function(btn) {
+
+        // Delete shipment
+        main.querySelectorAll('.delete-shipment-btn').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 if (!confirm('Delete this shipment?')) return;
                 await db.from('shipments').delete().eq('id', btn.dataset.id);
-                window.loadShipmentsPage();
-                loadDashboardOverview();
+                loadShipments(main);
             });
         });
     }
@@ -306,7 +410,7 @@
         var html = '';
         statuses.forEach(function(s) {
             var isCurrent = s === currentStatus;
-            html += '<button onclick="changeShipmentStatus(\'' + shipmentId + '\',\'' + s + '\')" style="padding:12px;border-radius:var(--radius);cursor:pointer;border:2px solid ' + (isCurrent ? 'var(--accent)' : 'var(--border-medium)') + ';background:' + (isCurrent ? 'var(--accent-dim)' : 'var(--bg-elevated)') + ';color:var(--text-primary);font-family:inherit;text-align:left;margin-bottom:4px;">' + (isCurrent ? '● ' : '') + formatStatus(s) + '</button>';
+            html += '<button class="status-option' + (isCurrent ? ' current' : '') + '" onclick="changeShipmentStatus(\'' + shipmentId + '\',\'' + s + '\')">' + (isCurrent ? '● ' : '') + formatStatus(s) + '</button>';
         });
         document.getElementById('statusPopupOptions').innerHTML = html;
         document.getElementById('statusPopupTitle').textContent = 'Change Status';
@@ -316,34 +420,10 @@
     window.changeShipmentStatus = async function(id, newStatus) {
         await db.from('shipments').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', id);
         document.getElementById('statusPopup').style.display = 'none';
-        window.loadShipmentsPage();
-        loadDashboardOverview();
+        renderScreen('shipments');
     };
 
-    // ============ TASKS ============
-    async function loadTasks() {
-        var query = db.from('tasks').select('*, shipments(awb_number, customer_name)').order('deadline', { ascending: true });
-        if (!isDirector && !isManager && !isOpsManager) query = query.eq('assigned_to', currentUser.id);
-        var r = await query;
-        var c = document.getElementById('taskListContainer');
-        if (!r.data || !r.data.length) {
-            c.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No tasks.</p>';
-            return;
-        }
-        c.innerHTML = r.data.map(function(t) {
-            var isOverdue = t.status === 'pending' && new Date(t.deadline) < new Date();
-            return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px;cursor:pointer;" onclick="openTaskDetail(\'' + t.id + '\')">' +
-                '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                    '<div><strong>' + escapeHtml(t.name) + '</strong>' + (t.shipments ? '<br><small style="color:var(--text-tertiary);">AWB: ' + t.shipments.awb_number + '</small>' : '') + '<br><small style="color:' + (isOverdue ? 'var(--red)' : 'var(--text-tertiary)') + ';">' + formatDeadline(t.deadline) + '</small></div>' +
-                    '<div style="display:flex;gap:8px;align-items:center;">' +
-                        '<span class="status-badge status-' + (t.status === 'completed' ? 'delivered' : 'confirmed') + '">' + t.status + '</span>' +
-                        (t.status !== 'completed' ? '<button class="task-do-btn complete-task-btn" data-id="' + t.id + '" onclick="event.stopPropagation();completeTask(\'' + t.id + '\')">Done</button>' : '') +
-                        '<button class="row-action-btn delete-task-btn" data-id="' + t.id + '" onclick="event.stopPropagation();deleteTask(\'' + t.id + '\')" style="color:var(--red);" title="Delete">✕</button>' +
-                    '</div>' +
-                '</div></div>';
-        }).join('');
-    }
-
+    // ============ TASK DETAIL ============
     window.openTaskDetail = async function(taskId) {
         var r = await db.from('tasks').select('*, shipments(awb_number, customer_name, origin, destination)').eq('id', taskId).single();
         if (!r.data) return;
@@ -357,7 +437,7 @@
             '<p><strong>Created:</strong> ' + new Date(t.created_at).toLocaleString() + '</p>';
         
         if (t.proof_url) {
-            document.getElementById('taskProofSection').innerHTML = '<p><strong>Completion Proof:</strong></p><img src="' + t.proof_url + '" style="max-width:100%;border-radius:var(--radius);margin-top:8px;">';
+            document.getElementById('taskProofSection').innerHTML = '<p><strong>Completion Proof:</strong></p><img src="' + t.proof_url + '" style="max-width:100%;border-radius:var(--radius-sm);margin-top:8px;">';
         } else {
             document.getElementById('taskProofSection').innerHTML = '';
         }
@@ -384,56 +464,69 @@
                 await db.from('tasks').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', taskId);
             }
             document.getElementById('taskDetailPopup').style.display = 'none';
-            loadTasks();
-            loadDashboardOverview();
+            renderScreen('tasks');
+            renderScreen('dashboard');
         };
         input.click();
     };
 
     window.completeTask = async function(taskId) {
         await db.from('tasks').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', taskId);
-        loadTasks();
-        loadDashboardOverview();
+        renderScreen(currentScreen);
     };
 
     window.deleteTask = async function(taskId) {
         if (!confirm('Delete this task?')) return;
         try {
             await db.from('tasks').delete().eq('id', taskId);
-            loadTasks();
-            loadDashboardOverview();
+            renderScreen(currentScreen);
         } catch(e) {
             console.error('Delete failed:', e);
         }
     };
 
-    // ============ RATES ============
-    async function loadRates() {
+    // ============ RATES SCREEN ============
+    async function loadRates(main) {
         var r = await db.from('airline_rates').select('*').order('airline');
-        var c = document.getElementById('ratesContainer');
-        if (!r.data || !r.data.length) {
-            c.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No rates configured.</p>';
-            return;
-        }
-        c.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">' +
-            r.data.map(function(rt) {
-                return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;display:flex;justify-content:space-between;align-items:start;">' +
-                    '<div><strong>' + escapeHtml(rt.airline) + '</strong><br>' + escapeHtml(rt.origin) + ' → ' + escapeHtml(rt.destination) + '<br><span style="color:var(--accent);font-size:1.2rem;font-weight:700;">$' + (rt.rate_per_kg_usd || 0).toFixed(2) + '/kg</span></div>' +
-                    '<div style="display:flex;gap:4px;"><button class="row-action-btn edit-rate-btn" data-id="' + rt.id + '">✎</button><button class="row-action-btn delete-rate-btn" data-id="' + rt.id + '" style="color:var(--red);">✕</button></div>' +
-                    '</div>';
-            }).join('') + '</div>';
+        var rates = r.data || [];
 
-        document.querySelectorAll('.edit-rate-btn').forEach(function(btn) {
+        var html = '<div class="page-header"><h1>Rate Database</h1><p>' + rates.length + ' rates</p></div>';
+        html += '<div class="search-bar"><input type="text" id="rateSearch" placeholder="Search by airline, route, or cargo type..."><button class="btn primary" id="btnAddRate">+ Add Rate</button></div>';
+
+        if (rates.length > 0) {
+            html += '<table class="data-table"><thead><tr><th>Airline</th><th>Route</th><th>Cargo</th><th>Rate/kg</th><th>Surcharges</th><th></th></tr></thead><tbody>';
+            rates.forEach(function(rt) {
+                html += '<tr><td><strong>' + escapeHtml(rt.airline) + '</strong></td><td>' + escapeHtml(rt.origin) + ' → ' + escapeHtml(rt.destination) + '</td><td>' + escapeHtml(rt.cargo_type || 'general') + '</td><td style="font-weight:600;">$' + (rt.rate_per_kg_usd || 0).toFixed(2) + '</td><td>$' + (rt.surcharges || 0).toFixed(2) + '</td>';
+                html += '<td style="display:flex;gap:4px;"><button class="btn btn-sm edit-rate-btn" data-id="' + rt.id + '">Edit</button><button class="btn btn-sm danger delete-rate-btn" data-id="' + rt.id + '">✕</button></td></tr>';
+            });
+            html += '</tbody></table>';
+        } else {
+            html += '<div class="empty-state">No rates configured</div>';
+        }
+
+        main.innerHTML = html;
+
+        document.getElementById('rateSearch')?.addEventListener('input', function() {
+            var query = this.value.toLowerCase();
+            document.querySelectorAll('.data-table tbody tr').forEach(function(row) {
+                row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('btnAddRate')?.addEventListener('click', function() { openRateForm(null); });
+
+        main.querySelectorAll('.edit-rate-btn').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 var rr = await db.from('airline_rates').select('*').eq('id', btn.dataset.id).single();
                 if (rr.data) openRateForm(rr.data);
             });
         });
-        document.querySelectorAll('.delete-rate-btn').forEach(function(btn) {
+
+        main.querySelectorAll('.delete-rate-btn').forEach(function(btn) {
             btn.addEventListener('click', async function() {
                 if (!confirm('Delete this rate?')) return;
                 await db.from('airline_rates').delete().eq('id', btn.dataset.id);
-                loadRates();
+                loadRates(main);
             });
         });
     }
@@ -444,34 +537,24 @@
         var isEdit = rateData && rateData.id;
         var modal = document.createElement('div');
         modal.id = 'rateFormModal';
-        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;';
+        modal.className = 'modal-overlay';
+        modal.style.display = 'flex';
         
-        modal.innerHTML = '<div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);padding:28px;width:90%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">' +
-            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">' +
-                '<h3 style="font-size:1.1rem;font-weight:700;">' + (isEdit ? 'Edit Rate' : 'Add Rate') + '</h3>' +
-                '<button onclick="document.getElementById(\'rateFormModal\').remove()" style="background:none;border:none;color:var(--text-tertiary);font-size:1.5rem;cursor:pointer;">&times;</button>' +
-            '</div>' +
-            '<form id="rateForm" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
-                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Airline</label><input type="text" id="rfAirline" value="' + escapeHtml(rateData?rateData.airline||'':'') + '" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
-                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Cargo Type</label><select id="rfCargoType" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"><option>general</option><option>perishable</option><option>pharma</option><option>dangerous</option><option>valuable</option></select></div>' +
-                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Origin</label><input type="text" id="rfOrigin" value="' + escapeHtml(rateData?rateData.origin||'':'') + '" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
-                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Destination</label><input type="text" id="rfDestination" value="' + escapeHtml(rateData?rateData.destination||'':'') + '" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
-                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Rate/kg (USD)</label><input type="number" id="rfRate" value="' + (rateData?rateData.rate_per_kg_usd||'':'') + '" step="0.01" required style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
-                '<div><label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:4px;">Surcharges</label><input type="number" id="rfSurcharges" value="' + (rateData?rateData.surcharges||'':'') + '" step="0.01" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:inherit;"></div>' +
-                '<div style="grid-column:1/-1;display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">' +
-                    '<button type="button" onclick="document.getElementById(\'rateFormModal\').remove()" style="padding:10px 20px;background:transparent;border:1px solid var(--border-medium);color:var(--text-primary);border-radius:var(--radius);cursor:pointer;font-family:inherit;">Cancel</button>' +
-                    '<button type="submit" style="padding:10px 20px;background:var(--accent);color:#1A2E4A;border:none;border-radius:var(--radius);cursor:pointer;font-weight:600;font-family:inherit;">' + (isEdit?'Update':'Add Rate') + '</button>' +
-                '</div>' +
-            '</form></div>';
+        modal.innerHTML = '<div class="modal-panel" style="max-width:520px;">' +
+            '<div class="modal-header"><h3>' + (isEdit ? 'Edit Rate' : 'Add Rate') + '</h3><button class="modal-close" onclick="document.getElementById(\'rateFormModal\').remove()">&times;</button></div>' +
+            '<div class="modal-body">' +
+            '<form id="rateForm">' +
+                '<div class="form-row"><div class="form-group"><label>Airline</label><input type="text" id="rfAirline" value="' + escapeHtml(rateData?rateData.airline||'':'') + '" required></div><div class="form-group"><label>Cargo Type</label><select id="rfCargoType"><option>general</option><option>perishable</option><option>pharma</option><option>dangerous</option><option>valuable</option></select></div></div>' +
+                '<div class="form-row"><div class="form-group"><label>Origin</label><input type="text" id="rfOrigin" value="' + escapeHtml(rateData?rateData.origin||'':'') + '" required></div><div class="form-group"><label>Destination</label><input type="text" id="rfDestination" value="' + escapeHtml(rateData?rateData.destination||'':'') + '" required></div></div>' +
+                '<div class="form-row"><div class="form-group"><label>Rate/kg (USD)</label><input type="number" id="rfRate" value="' + (rateData?rateData.rate_per_kg_usd||'':'') + '" step="0.01" required></div><div class="form-group"><label>Surcharges</label><input type="number" id="rfSurcharges" value="' + (rateData?rateData.surcharges||'':'') + '" step="0.01"></div></div>' +
+            '</form></div>' +
+            '<div class="modal-footer"><button class="btn" onclick="document.getElementById(\'rateFormModal\').remove()">Cancel</button><button class="btn primary" id="rateFormSubmit">' + (isEdit?'Update':'Add Rate') + '</button></div>' +
+            '</div>';
         
         document.body.appendChild(modal);
         modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
         
-        document.getElementById('rateForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            var submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
+        document.getElementById('rateFormSubmit').addEventListener('click', async function() {
             var data = {
                 airline: document.getElementById('rfAirline').value.trim(),
                 origin: document.getElementById('rfOrigin').value.trim(),
@@ -484,88 +567,80 @@
                 if (isEdit) await db.from('airline_rates').update(data).eq('id', rateData.id);
                 else await db.from('airline_rates').insert(data);
                 modal.remove();
-                loadRates();
-            } catch(err) {
-                alert('Error: ' + err.message);
-                submitBtn.disabled = false;
-                submitBtn.textContent = isEdit ? 'Update' : 'Add Rate';
-            }
+                loadRates(document.getElementById('mainContent'));
+            } catch(err) { alert('Error: ' + err.message); }
         });
     }
 
-    // ============ FLIGHTS ============
-    window.loadFlightsPage = function() {
-        document.getElementById('flightSearchResult').innerHTML = '';
-        var container = document.getElementById('flightsContainer');
-        db.from('shipments').select('*').not('flight_number', 'is', null).order('updated_at', { ascending: false }).then(function(r) {
-            if (!r.data || !r.data.length) {
-                container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No flights being tracked.</p>';
-                return;
+    // ============ FLIGHTS SCREEN ============
+    async function loadFlights(main) {
+        if (!isDirector) return;
+        var html = '<div class="page-header"><h1>Flight Tracking</h1><p>Search any flight or view tracked shipments</p></div>';
+        html += '<div class="search-bar"><input type="text" id="flightSearchInput" placeholder="Enter flight number..."><button class="btn primary" id="btnFlightSearch">Search</button></div>';
+        html += '<div id="flightSearchResult"></div>';
+        html += '<div class="section-title" style="margin-top:20px;">Tracked Shipment Flights</div>';
+        html += '<div id="flightsList"></div>';
+        main.innerHTML = html;
+
+        document.getElementById('btnFlightSearch')?.addEventListener('click', async function() {
+            var fn = document.getElementById('flightSearchInput').value.trim();
+            if (!fn) return;
+            if (typeof FlightTracker !== 'undefined' && FlightTracker.searchFlight) {
+                await FlightTracker.searchFlight(fn);
             }
-            container.innerHTML = r.data.map(function(s) {
-                return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:16px;margin-bottom:8px;">' +
-                    '<div style="display:flex;justify-content:space-between;"><strong>' + escapeHtml(s.flight_number) + '</strong><span class="status-badge status-' + s.status + '">' + formatStatus(s.status) + '</span></div>' +
-                    '<small>' + escapeHtml(s.airline||'') + ' | ' + escapeHtml(s.origin) + ' → ' + escapeHtml(s.destination) + ' | AWB: ' + escapeHtml(s.awb_number||'') + '</small>' +
-                    (isDirector ? '<br><button class="btn btn-amber btn-sm track-flight-btn" data-id="' + s.id + '" data-flight="' + escapeHtml(s.flight_number) + '" style="margin-top:8px;">Track Now</button>' : '') +
-                    '</div>';
-            }).join('');
-            document.querySelectorAll('.track-flight-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    if (typeof FlightTracker !== 'undefined') FlightTracker.trackFlight(btn.dataset.id, btn.dataset.flight);
-                });
+        });
+
+        var r = await db.from('shipments').select('*').not('flight_number', 'is', null).order('updated_at', { ascending: false });
+        var flights = r.data || [];
+        var fhtml = '';
+        if (flights.length > 0) {
+            fhtml += '<table class="data-table"><thead><tr><th>Flight</th><th>Airline</th><th>Route</th><th>Status</th><th>AWB</th><th></th></tr></thead><tbody>';
+            flights.forEach(function(s) {
+                fhtml += '<tr><td><span class="mono">' + escapeHtml(s.flight_number) + '</span></td><td>' + escapeHtml(s.airline||'') + '</td><td>' + escapeHtml(s.origin) + ' → ' + escapeHtml(s.destination) + '</td><td><span class="badge ' + s.status + '">' + formatStatus(s.status) + '</span></td><td>' + escapeHtml(s.awb_number||'') + '</td>';
+                fhtml += '<td><button class="btn btn-sm track-flight-btn" data-id="' + s.id + '" data-flight="' + escapeHtml(s.flight_number) + '">Track</button></td></tr>';
+            });
+            fhtml += '</tbody></table>';
+        } else {
+            fhtml += '<div class="empty-state">No flights being tracked</div>';
+        }
+        document.getElementById('flightsList').innerHTML = fhtml;
+
+        document.querySelectorAll('.track-flight-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (typeof FlightTracker !== 'undefined') FlightTracker.trackFlight(btn.dataset.id, btn.dataset.flight);
             });
         });
-    };
+    }
 
-    document.getElementById('btnFlightSearch')?.addEventListener('click', async function() {
-        var fn = document.getElementById('flightSearchInput').value.trim();
-        if (!fn) return;
-        if (typeof FlightTracker !== 'undefined' && FlightTracker.searchFlight) {
-            await FlightTracker.searchFlight(fn);
-        }
-    });
-
-    // ============ TEAM ============
-    async function loadTeam() {
+    // ============ TEAM SCREEN ============
+    async function loadTeam(main) {
         if (!isManager && !isDirector) return;
         var r = await db.from('profiles').select('*');
-        var c = document.getElementById('teamContainer');
-        if (!r.data || !r.data.length) { c.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No team members.</p>'; return; }
-        var filtered = r.data.filter(function(p) { return p.role !== 'manager'; });
-        c.innerHTML = filtered.map(function(p) {
-            return '<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">' +
-                '<div style="width:36px;height:36px;border-radius:50%;background:' + (p.is_admin || p.role==='director'?'var(--accent)':'var(--bg-tertiary)') + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:' + (p.is_admin||p.role==='director'?'#1A2E4A':'var(--text-primary)') + ';">' + (p.full_name||'?').charAt(0).toUpperCase() + '</div>' +
-                '<div><strong>' + escapeHtml(p.full_name) + '</strong><br><small style="color:var(--text-tertiary);">' + p.role + '</small></div></div>';
-        }).join('');
+        var users = r.data || [];
+        var filtered = users.filter(function(p) { return p.role !== 'manager'; });
+
+        var html = '<div class="page-header"><h1>Team Overview</h1><p>' + filtered.length + ' team members</p></div>';
+        
+        if (filtered.length > 0) {
+            html += '<div class="bento">';
+            html += '<div class="bento-card wide"><h3>Team Members</h3><div class="mini-list">';
+            filtered.forEach(function(p) {
+                html += '<div class="mini-item"><span class="name">' + escapeHtml(p.full_name || 'Unnamed') + '</span><span class="count">' + p.role + '</span></div>';
+            });
+            html += '</div></div></div>';
+        } else {
+            html += '<div class="empty-state">No team members</div>';
+        }
+
+        main.innerHTML = html;
     }
 
     // ============ HELPERS ============
     function formatStatus(s) { if (!s) return ''; return s.split('_').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(' '); }
-    function formatDeadline(d) { var diff = new Date(d) - new Date(); if (diff < 0) return 'Overdue'; var h = Math.floor(diff/3600000); if (h < 24) return h + 'h remaining'; return Math.floor(h/24) + 'd remaining'; }
-    function timeAgo(d) { var diff = (new Date() - new Date(d))/1000; if (diff<60) return 'Just now'; if (diff<3600) return Math.floor(diff/60)+'m ago'; if (diff<86400) return Math.floor(diff/3600)+'h ago'; return Math.floor(diff/86400)+'d ago'; }
+    function formatDeadline(d) { var diff = new Date(d) - new Date(); if (diff < 0) return 'Overdue'; var h = Math.floor(diff/3600000); if (h < 24) return h + 'h left'; return Math.floor(h/24) + 'd left'; }
     function escapeHtml(t) { if (!t) return ''; var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-    function populateFilterDropdown(sel) {
-        if (!sel || sel.options.length > 1) return;
-        ['draft','confirmed','booked','departed','in_transit','arrived','delivered'].forEach(function(s) {
-            var o = document.createElement('option'); o.value = s; o.textContent = formatStatus(s); sel.appendChild(o);
-        });
-        sel.addEventListener('change', function() { window.loadShipmentsPage(); });
-    }
 
-    // ============ EVENT HANDLERS ============
-    document.addEventListener('click', function(e) {
-        if (e.target.id === 'btnNewShipment' || e.target.closest('#btnNewShipment')) {
-            if (typeof ShipmentManager !== 'undefined') ShipmentManager.openShipmentForm();
-        }
-        if ((e.target.id === 'btnDelegateTask' || e.target.closest('#btnDelegateTask')) && canAssignTasks) {
-            if (typeof TaskManager !== 'undefined') TaskManager.openDelegateModal();
-        }
-        if (e.target.id === 'btnAddRate' || e.target.closest('#btnAddRate')) {
-            openRateForm(null);
-        }
-    });
-
-    // Close popups on overlay click
+    // Close modals on overlay click
     document.getElementById('statusPopup')?.addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
     document.getElementById('taskDetailPopup')?.addEventListener('click', function(e) { if (e.target === this) this.style.display = 'none'; });
 
