@@ -66,7 +66,6 @@
             });
         }
 
-        // ============ IMAGE UPLOADS ============
         bindImageUploads() {
             var self = this;
             document.querySelectorAll('input[type="file"]').forEach(function(input) {
@@ -226,9 +225,7 @@
         // ============ TEAMS ============
         bindTeamActions() {
             var self = this;
-            document.getElementById('btnAddTeam')?.addEventListener('click', function() {
-                self.addTeam();
-            });
+            document.getElementById('btnAddTeam')?.addEventListener('click', function() { self.addTeam(); });
         }
 
         async loadTeams() {
@@ -238,40 +235,37 @@
                 var r = await this.db.from('teams').select('*').order('name');
                 this.teamsCache = r.data || [];
                 if (!this.teamsCache.length) {
-                    container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No teams yet. Create one below.</p>';
+                    container.innerHTML = '<p style="color:#9a9a9a;text-align:center;padding:40px;">No teams yet. Create one below.</p>';
                     return;
                 }
                 var self = this;
                 container.innerHTML = this.teamsCache.map(function(t) {
-                    return '<div class="team-row" data-id="' + t.id + '">' +
-                        '<div class="team-info"><strong>' + escapeHtml(t.name) + '</strong>' + (t.description ? '<br><small>' + escapeHtml(t.description) + '</small>' : '') + '</div>' +
-                        '<button class="btn btn-outline-dark btn-xs edit-team-btn">Edit</button>' +
-                        '<button class="btn btn-danger btn-xs delete-team-btn">Delete</button>' +
+                    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fafafa;border:1px solid #f0f0f0;border-radius:8px;margin-bottom:4px;" data-id="' + t.id + '">' +
+                        '<div style="flex:1;"><strong style="font-size:0.85rem;">' + escapeHtml(t.name) + '</strong>' + (t.description ? '<br><small style="color:#9a9a9a;font-size:0.75rem;">' + escapeHtml(t.description) + '</small>' : '') + '</div>' +
+                        '<button class="btn btn-sm edit-team-btn" style="padding:4px 10px;font-size:0.75rem;background:#fff;border:1px solid #e5e5e5;border-radius:4px;cursor:pointer;font-family:inherit;">Edit</button>' +
+                        '<button class="btn btn-sm delete-team-btn" style="padding:4px 10px;font-size:0.75rem;background:#fef2f2;color:#e5484d;border:1px solid #fecaca;border-radius:4px;cursor:pointer;font-family:inherit;">Delete</button>' +
                         '</div>';
                 }).join('');
 
                 container.querySelectorAll('.edit-team-btn').forEach(function(btn) {
                     btn.addEventListener('click', function() {
-                        var row = btn.closest('.team-row');
+                        var row = btn.closest('[data-id]');
                         var id = row.dataset.id;
                         var name = row.querySelector('strong').textContent;
                         var desc = row.querySelector('small') ? row.querySelector('small').textContent : '';
                         var newName = prompt('Edit team name:', name);
-                        if (newName && newName.trim()) {
-                            self.updateTeam(id, newName.trim(), desc);
-                        }
+                        if (newName && newName.trim()) { self.updateTeam(id, newName.trim(), desc); }
                     });
                 });
 
                 container.querySelectorAll('.delete-team-btn').forEach(function(btn) {
                     btn.addEventListener('click', function() {
-                        if (!confirm('Delete this team? Employees in it will become unassigned.')) return;
-                        var id = btn.closest('.team-row').dataset.id;
-                        self.deleteTeam(id);
+                        if (!confirm('Delete this team?')) return;
+                        self.deleteTeam(btn.closest('[data-id]').dataset.id);
                     });
                 });
             } catch(e) {
-                container.innerHTML = '<p style="color:var(--red);text-align:center;padding:40px;">Error loading teams.</p>';
+                container.innerHTML = '<p style="color:#e5484d;text-align:center;padding:40px;">Error loading teams.</p>';
             }
         }
 
@@ -308,11 +302,11 @@
         async loadUsers() {
             var container = document.getElementById('usersListContainer');
             if (!container) return;
-            container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading...</p>';
+            container.innerHTML = '<p style="color:#9a9a9a;text-align:center;padding:40px;">Loading...</p>';
             try {
                 var r = await this.db.from('profiles').select('*').order('full_name');
                 if (!r.data || !r.data.length) {
-                    container.innerHTML = '<p style="color:var(--text-tertiary);text-align:center;padding:40px;">No users.</p>';
+                    container.innerHTML = '<p style="color:#9a9a9a;text-align:center;padding:40px;">No users.</p>';
                     return;
                 }
                 var self = this;
@@ -325,23 +319,23 @@
 
                 container.innerHTML = r.data.map(function(p) {
                     var teamOptsHtml = teamsOpts.replace('value="' + (p.team_id || '') + '"', 'value="' + (p.team_id || '') + '" selected');
-                    return '<div class="user-row" data-id="' + p.id + '">' +
-                        '<div class="user-info"><strong>' + (p.full_name || 'Unnamed') + '</strong><small>' + (p.email || '') + '</small></div>' +
-                        '<div class="editable-field"><label>Name</label><input type="text" class="user-name-input" value="' + (p.full_name || '') + '"></div>' +
-                        '<div class="editable-field"><label>Role</label><select class="user-role-select">' +
+                    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fafafa;border:1px solid #f0f0f0;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;" data-id="' + p.id + '">' +
+                        '<div style="flex:1;min-width:120px;"><strong style="font-size:0.85rem;">' + (p.full_name || 'Unnamed') + '</strong><br><small style="color:#9a9a9a;font-size:0.75rem;">' + (p.email || '') + '</small></div>' +
+                        '<div style="display:flex;flex-direction:column;gap:2px;"><label style="font-size:0.65rem;color:#9a9a9a;text-transform:uppercase;">Name</label><input type="text" class="user-name-input" value="' + (p.full_name || '') + '" style="background:#fff;border:1px solid #e5e5e5;color:#1a1a1a;padding:5px 8px;border-radius:4px;font-family:inherit;font-size:0.8rem;"></div>' +
+                        '<div style="display:flex;flex-direction:column;gap:2px;"><label style="font-size:0.65rem;color:#9a9a9a;text-transform:uppercase;">Role</label><select class="user-role-select" style="background:#fff;border:1px solid #e5e5e5;color:#1a1a1a;padding:5px 8px;border-radius:4px;font-family:inherit;font-size:0.8rem;cursor:pointer;">' +
                             '<option value="employee"' + (p.role === 'employee' ? ' selected' : '') + '>Employee</option>' +
-                            '<option value="operations_manager"' + (p.role === 'operations_manager' ? ' selected' : '') + '>Operations Manager</option>' +
+                            '<option value="operations_manager"' + (p.role === 'operations_manager' ? ' selected' : '') + '>Ops Manager</option>' +
                             '<option value="manager"' + (p.role === 'manager' ? ' selected' : '') + '>Website Manager</option>' +
                             '<option value="director"' + (p.role === 'director' ? ' selected' : '') + '>Director</option>' +
                         '</select></div>' +
-                        '<div class="editable-field"><label>Team</label><select class="user-team-select">' + teamOptsHtml + '</select></div>' +
-                        '<button class="btn btn-amber btn-xs save-user-btn">Save</button>' +
+                        '<div style="display:flex;flex-direction:column;gap:2px;"><label style="font-size:0.65rem;color:#9a9a9a;text-transform:uppercase;">Team</label><select class="user-team-select" style="background:#fff;border:1px solid #e5e5e5;color:#1a1a1a;padding:5px 8px;border-radius:4px;font-family:inherit;font-size:0.8rem;cursor:pointer;">' + teamOptsHtml + '</select></div>' +
+                        '<button class="save-user-btn" style="padding:4px 10px;font-size:0.75rem;background:#F5A623;color:#1a1a1a;border:none;border-radius:4px;cursor:pointer;font-weight:600;font-family:inherit;">Save</button>' +
                         '</div>';
                 }).join('');
 
                 container.querySelectorAll('.save-user-btn').forEach(function(btn) {
                     btn.addEventListener('click', async function() {
-                        var row = btn.closest('.user-row');
+                        var row = btn.closest('[data-id]');
                         var uid = row.dataset.id;
                         var newName = row.querySelector('.user-name-input').value.trim();
                         var newRole = row.querySelector('.user-role-select').value;
@@ -350,11 +344,8 @@
                         btn.textContent = '...'; btn.disabled = true;
                         try {
                             await self.db.from('profiles').update({
-                                full_name: newName,
-                                role: newRole,
-                                team_id: newTeam,
-                                is_admin: (newRole === 'director'),
-                                updated_at: new Date().toISOString()
+                                full_name: newName, role: newRole, team_id: newTeam,
+                                is_admin: (newRole === 'director'), updated_at: new Date().toISOString()
                             }).eq('id', uid);
                             self.showToast('User updated!');
                             self.loadUsers();
@@ -365,7 +356,7 @@
                     });
                 });
             } catch(e) {
-                container.innerHTML = '<p style="color:var(--red);text-align:center;padding:40px;">Error.</p>';
+                container.innerHTML = '<p style="color:#e5484d;text-align:center;padding:40px;">Error.</p>';
             }
         }
 
@@ -373,7 +364,7 @@
             type = type || 'success';
             var toast = document.createElement('div');
             toast.textContent = message;
-            toast.style.cssText = 'position:fixed;bottom:30px;right:30px;background:' + (type === 'error' ? '#ef4444' : '#22c55e') + ';color:white;padding:14px 24px;border-radius:10px;font-family:Inter,sans-serif;font-weight:500;font-size:0.9rem;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.4);animation:toastIn 0.3s ease-out;';
+            toast.style.cssText = 'position:fixed;bottom:30px;right:30px;background:' + (type === 'error' ? '#e5484d' : '#22c55e') + ';color:white;padding:14px 24px;border-radius:8px;font-family:Inter,sans-serif;font-weight:500;font-size:0.9rem;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.1);animation:toastIn 0.3s ease-out;';
             document.body.appendChild(toast);
             setTimeout(function() { toast.style.animation = 'toastOut 0.3s ease-in'; setTimeout(function() { toast.remove(); }, 300); }, 3500);
         }
