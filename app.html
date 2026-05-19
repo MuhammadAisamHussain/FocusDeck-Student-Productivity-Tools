@@ -6,195 +6,88 @@
     <title>eCargoWorld — Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="js/supabase.js"></script>
 </head>
 <body>
 
-    <header class="command-bar">
-        <div class="command-left">
-            <div class="brand-block">
-                <img src="" alt="eCargoWorld" class="cmd-logo cmd-logo-ecw" id="dashLogoEcw" data-slot="logo_ecw_url">
-            </div>
-            <nav class="cmd-nav" id="mainNav">
-                <button class="cmd-nav-item active" data-screen="dashboard">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                    <span>Overview</span>
-                </button>
-                <button class="cmd-nav-item" data-screen="tasks" id="navTasks">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-                    <span>Tasks</span>
-                    <span class="nav-badge" id="taskBadge" style="display:none;">0</span>
-                </button>
-                <button class="cmd-nav-item" data-screen="shipments">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 13V7l-4-4H5a2 2 0 00-2 2v14a2 2 0 002 2h6"/><path d="M16 3v4h4"/><circle cx="17" cy="18" r="3"/><path d="M19.5 20.5l2 2"/></svg>
-                    <span>Shipments</span>
-                </button>
-                <button class="cmd-nav-item" data-screen="rates">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-                    <span>Rates</span>
-                </button>
-                <button class="cmd-nav-item director-only" data-screen="flights" style="display:none;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                    <span>Flights</span>
-                </button>
-                <button class="cmd-nav-item manager-only" data-screen="team" style="display:none;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-                    <span>Team</span>
-                </button>
-            </nav>
-        </div>
-        <div class="command-right">
-            <span id="roleBadge" style="font-size:0.75rem;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:1px;"></span>
-            <a href="admin.html" class="btn-logout manager-only" id="btnAdmin" style="display:none;text-decoration:none;margin-right:8px;">Admin</a>
-            <div class="user-menu" id="userMenu">
+<div class="app-layout">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <img src="" alt="eCargoWorld" class="sidebar-logo-img" id="dashLogoEcw" data-slot="logo_ecw_url">
+        </a>
+        <ul class="sidebar-nav">
+            <li><a href="#" class="active" data-screen="dashboard">Overview</a></li>
+            <li><a href="#" data-screen="tasks" id="navTasks">Tasks <span class="nav-badge" id="taskBadge" style="display:none;">0</span></a></li>
+            <li><a href="#" data-screen="shipments">Shipments</a></li>
+            <li><a href="#" data-screen="rates">Rates</a></li>
+            <li><a href="#" data-screen="flights" class="director-only" style="display:none;">Flights</a></li>
+            <li><a href="#" data-screen="team" class="manager-only" style="display:none;">Team</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            <a href="admin.html" class="sidebar-admin-link manager-only" id="btnAdmin" style="display:none;">Admin Panel</a>
+            <div class="sidebar-user">
                 <div class="user-avatar" id="userAvatar">U</div>
-                <span class="user-name" id="userName">User</span>
+                <div>
+                    <div class="user-name" id="userName">User</div>
+                    <div class="user-role" id="roleBadge">Employee</div>
+                </div>
             </div>
             <button class="btn-logout" id="btnLogout">Logout</button>
         </div>
-    </header>
+    </aside>
 
-    <main class="app-main">
-
-        <!-- OVERVIEW -->
-        <section class="screen active" id="screenDashboard">
-            <div class="urgency-strip">
-                <div class="urgency-item critical"><span class="urgency-count" id="countOverdue">0</span><span class="urgency-label">Overdue</span></div>
-                <div class="urgency-item warning"><span class="urgency-count" id="countToday">0</span><span class="urgency-label">Due Today</span></div>
-                <div class="urgency-item info"><span class="urgency-count" id="countActive">0</span><span class="urgency-label">Active Shipments</span></div>
-                <div class="urgency-item success"><span class="urgency-count" id="countDelivered">0</span><span class="urgency-label">Delivered</span></div>
-            </div>
-            <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
-                <div class="dash-card" style="grid-row:span 2;">
-                    <div class="card-header"><h3>Your Tasks</h3><span class="card-badge" id="taskCountBadge">0 pending</span></div>
-                    <div id="overviewTaskList"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading tasks...</p></div>
-                </div>
-                <div class="dash-card">
-                    <div class="card-header"><h3>Shipments</h3></div>
-                    <div class="timeline-track" id="timelineTrack">
-                        <div class="timeline-stage"><div class="stage-dot active"></div><div class="stage-info"><span class="stage-count" id="tlConfirmed">0</span><span class="stage-name">Confirmed</span></div></div>
-                        <div class="timeline-connector"></div>
-                        <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlInTransit">0</span><span class="stage-name">In Transit</span></div></div>
-                        <div class="timeline-connector"></div>
-                        <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlArrived">0</span><span class="stage-name">Arrived</span></div></div>
-                    </div>
-                </div>
-                <div class="dash-card">
-                    <div class="card-header"><h3>Recent</h3></div>
-                    <div class="activity-feed" id="activityFeed"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading...</p></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TASKS SCREEN -->
-        <section class="screen" id="screenTasks">
-            <div class="screen-toolbar">
-                <h2>All Tasks</h2>
-                <button class="btn btn-amber director-only" id="btnDelegateTask" style="display:none;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Delegate Task
-                </button>
-            </div>
-            <div id="taskListContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading tasks...</p></div>
-        </section>
-
-        <!-- SHIPMENTS SCREEN -->
-        <section class="screen" id="screenShipments">
-            <div class="screen-toolbar">
-                <h2>All Shipments</h2>
-                <div class="toolbar-actions">
-                    <select class="filter-select" id="filterStatus"><option value="">All Statuses</option></select>
-                    <button class="btn btn-amber" id="btnNewShipment">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        New Shipment
-                    </button>
-                </div>
-            </div>
-            <div class="shipment-table-wrap">
-                <table class="shipment-table">
-                    <thead><tr><th>AWB</th><th>Customer</th><th>Route</th><th>Airline</th><th>Weight</th><th>Status</th><th class="manager-only-col" style="display:none;">Profit</th><th></th></tr></thead>
-                    <tbody id="shipmentTableBody"><tr><td colspan="8"><div class="empty-state"><p>No shipments found.</p></div></td></tr></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- RATES SCREEN -->
-        <section class="screen" id="screenRates">
-            <div class="screen-toolbar">
-                <h2>Airline Rates (USD/kg)</h2>
-                <button class="btn btn-amber" id="btnAddRate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Add Rate
-                </button>
-            </div>
-            <div id="ratesContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading rates...</p></div>
-        </section>
-
-        <!-- FLIGHTS SCREEN (Director Only) -->
-        <section class="screen" id="screenFlights">
-            <div class="screen-toolbar"><h2>Flight Tracking</h2></div>
-            <div style="display:flex;gap:10px;margin-bottom:20px;">
-                <input type="text" id="flightSearchInput" placeholder="Enter flight number (e.g. EK612)" style="flex:1;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:Inter,sans-serif;">
-                <button class="btn btn-amber" id="btnFlightSearch">Search Flight</button>
-            </div>
-            <div id="flightSearchResult"></div>
-            <hr style="border-color:var(--border-subtle);margin:20px 0;">
-            <h3 style="margin-bottom:16px;">Tracked Shipment Flights</h3>
-            <div id="flightsContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading flights...</p></div>
-        </section>
-
-        <!-- TEAM SCREEN -->
-        <section class="screen" id="screenTeam">
-            <div class="screen-toolbar"><h2>Team Overview</h2></div>
-            <div id="teamContainer"><p style="color:var(--text-tertiary);text-align:center;padding:40px;">Loading team data...</p></div>
-        </section>
-
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Screens loaded dynamically -->
     </main>
+</div>
 
-    <!-- Task Detail Modal -->
-    <div class="popup-overlay" id="taskDetailPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;">
-        <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);padding:28px;width:90%;max-width:500px;max-height:80vh;overflow-y:auto;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-                <h3 id="taskDetailTitle">Task Details</h3>
-                <button onclick="document.getElementById('taskDetailPopup').style.display='none'" style="background:none;border:none;color:var(--text-tertiary);font-size:1.5rem;cursor:pointer;">&times;</button>
-            </div>
-            <div id="taskDetailContent"></div>
-            <div id="taskProofSection" style="margin-top:16px;"></div>
-            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-                <button class="btn btn-outline-dark" onclick="document.getElementById('taskDetailPopup').style.display='none'">Close</button>
-                <button class="btn btn-amber" id="taskDetailCompleteBtn">Mark Complete</button>
-            </div>
+<!-- Task Detail Modal -->
+<div class="modal-overlay" id="taskDetailPopup" style="display:none;">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3 id="taskDetailTitle">Task Details</h3>
+            <button onclick="document.getElementById('taskDetailPopup').style.display='none'" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body" id="taskDetailContent"></div>
+        <div class="modal-body" id="taskProofSection" style="margin-top:0;"></div>
+        <div class="modal-footer">
+            <button class="btn" onclick="document.getElementById('taskDetailPopup').style.display='none'">Close</button>
+            <button class="btn primary" id="taskDetailCompleteBtn">Mark Complete</button>
         </div>
     </div>
+</div>
 
-    <!-- Status Change Popup -->
-    <div class="popup-overlay" id="statusPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;">
-        <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:var(--radius-xl);padding:28px;width:90%;max-width:400px;">
-            <h3 id="statusPopupTitle" style="margin-bottom:16px;">Change Status</h3>
-            <div id="statusPopupOptions" style="display:flex;flex-direction:column;gap:6px;"></div>
-            <button onclick="document.getElementById('statusPopup').style.display='none'" style="margin-top:16px;width:100%;padding:10px;background:transparent;border:1px solid var(--border-medium);color:var(--text-secondary);border-radius:var(--radius);cursor:pointer;">Cancel</button>
+<!-- Status Change Modal -->
+<div class="modal-overlay" id="statusPopup" style="display:none;">
+    <div class="modal-panel" style="max-width:360px;">
+        <div class="modal-header">
+            <h3 id="statusPopupTitle">Change Status</h3>
+            <button onclick="document.getElementById('statusPopup').style.display='none'" class="modal-close">&times;</button>
         </div>
+        <div class="modal-body" id="statusPopupOptions"></div>
     </div>
+</div>
 
-    <!-- Notification Popup -->
-    <div id="notificationPopup" style="display:none;position:fixed;top:20px;right:20px;background:var(--bg-card);border:1px solid var(--accent);border-radius:var(--radius-lg);padding:20px;z-index:200;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,0.5);animation:slideDown 0.4s ease;">
-        <div style="display:flex;gap:12px;align-items:start;">
-            <div style="font-size:1.5rem;">🔔</div>
-            <div style="flex:1;">
-                <strong>New Task Assigned</strong>
-                <p id="notifTaskName" style="margin:4px 0;font-size:0.9rem;"></p>
-                <small id="notifTaskDeadline" style="color:var(--text-tertiary);"></small>
-            </div>
-            <button onclick="document.getElementById('notificationPopup').style.display='none'" style="background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:1.2rem;">&times;</button>
-        </div>
+<!-- Notification Toast -->
+<div id="notificationPopup" class="toast-notification" style="display:none;">
+    <div class="toast-icon">&#128276;</div>
+    <div>
+        <strong>New Task Assigned</strong>
+        <p id="notifTaskName"></p>
+        <small id="notifTaskDeadline"></small>
     </div>
+    <button onclick="document.getElementById('notificationPopup').style.display='none'" class="toast-close">&times;</button>
+</div>
 
-    <script src="js/app.js"></script>
-    <script src="js/shipments.js"></script>
-    <script src="js/flights.js"></script>
-    <script src="js/tasks.js"></script>
+<script src="js/app.js"></script>
+<script src="js/shipments.js"></script>
+<script src="js/flights.js"></script>
+<script src="js/tasks.js"></script>
 </body>
 </html>
