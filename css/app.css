@@ -540,4 +540,27 @@ body {
     .stat-grid { grid-template-columns: repeat(2,1fr); }
     .bento { grid-template-columns: 1fr; }
     .bento-card.wide { grid-column: span 1; }
+/* ============ FIX: Remove old screen system interference ============ */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ============ FIX: Table row actions spacing ============ */
+.data-table td:last-child { white-space: nowrap; }
+
+/* ============ FIX: Modal form select styling ============ */
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.85rem;
+    outline: none;
+    background: var(--surface);
+    color: var(--text);
 }
+.form-group select:focus { border-color: #aaa; }
+
+/* ============ FIX: Clickable status badge ============ */
+.badge { cursor: pointer; transition: var(--transition); }
+.badge:hover { opacity: 0.8; }
