@@ -67,15 +67,11 @@
                 <div class="urgency-item info"><span class="urgency-count" id="countActive">0</span><span class="urgency-label">Active Shipments</span></div>
                 <div class="urgency-item success"><span class="urgency-count" id="countDelivered">0</span><span class="urgency-label">Delivered</span></div>
             </div>
-
-            <!-- TASK-FOCUSED LAYOUT: Tasks get the big card, rest secondary -->
             <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
-                <!-- Big Task Card -->
                 <div class="dash-card" style="grid-row:span 2;">
                     <div class="card-header"><h3>Your Tasks</h3><span class="card-badge" id="taskCountBadge">0 pending</span></div>
                     <div id="overviewTaskList"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading tasks...</p></div>
                 </div>
-                <!-- Shipment Timeline -->
                 <div class="dash-card">
                     <div class="card-header"><h3>Shipments</h3></div>
                     <div class="timeline-track" id="timelineTrack">
@@ -86,7 +82,6 @@
                         <div class="timeline-stage"><div class="stage-dot"></div><div class="stage-info"><span class="stage-count" id="tlArrived">0</span><span class="stage-name">Arrived</span></div></div>
                     </div>
                 </div>
-                <!-- Recent Activity -->
                 <div class="dash-card">
                     <div class="card-header"><h3>Recent</h3></div>
                     <div class="activity-feed" id="activityFeed"><p style="color:var(--text-tertiary);text-align:center;padding:20px;">Loading...</p></div>
@@ -130,7 +125,7 @@
         <section class="screen" id="screenRates">
             <div class="screen-toolbar">
                 <h2>Airline Rates (USD/kg)</h2>
-                <button class="btn btn-amber manager-only" id="btnAddRate" style="display:none;">
+                <button class="btn btn-amber" id="btnAddRate">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Add Rate
                 </button>
@@ -141,7 +136,6 @@
         <!-- FLIGHTS SCREEN (Director Only) -->
         <section class="screen" id="screenFlights">
             <div class="screen-toolbar"><h2>Flight Tracking</h2></div>
-            <!-- Manual Flight Search -->
             <div style="display:flex;gap:10px;margin-bottom:20px;">
                 <input type="text" id="flightSearchInput" placeholder="Enter flight number (e.g. EK612)" style="flex:1;padding:10px 14px;background:var(--bg-tertiary);border:1px solid var(--border-medium);border-radius:var(--radius);color:var(--text-primary);font-family:Inter,sans-serif;">
                 <button class="btn btn-amber" id="btnFlightSearch">Search Flight</button>
