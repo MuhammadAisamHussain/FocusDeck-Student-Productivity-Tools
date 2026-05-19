@@ -15,7 +15,6 @@
 
 <div class="app-layout">
     
-    <!-- Sidebar -->
     <aside class="sidebar">
         <a href="index.html" class="sidebar-logo">
             <img src="" alt="eCargoWorld" class="sidebar-logo-img" id="dashLogoEcw" data-slot="logo_ecw_url">
@@ -25,6 +24,7 @@
             <li><a href="#" data-screen="tasks" id="navTasks">Tasks <span class="nav-badge" id="taskBadge" style="display:none;">0</span></a></li>
             <li><a href="#" data-screen="shipments">Shipments</a></li>
             <li><a href="#" data-screen="rates">Rates</a></li>
+            <li><a href="#" data-screen="currencies">Currencies</a></li>
             <li><a href="#" data-screen="flights" class="director-only" style="display:none;">Flights</a></li>
             <li><a href="#" data-screen="team" class="manager-only" style="display:none;">Team</a></li>
         </ul>
@@ -41,13 +41,10 @@
         </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="main-content" id="mainContent">
-        <!-- Screens loaded dynamically -->
     </main>
 </div>
 
-<!-- Task Detail Modal -->
 <div class="modal-overlay" id="taskDetailPopup" style="display:none;">
     <div class="modal-panel">
         <div class="modal-header">
@@ -63,7 +60,6 @@
     </div>
 </div>
 
-<!-- Status Change Modal -->
 <div class="modal-overlay" id="statusPopup" style="display:none;">
     <div class="modal-panel" style="max-width:360px;">
         <div class="modal-header">
@@ -74,7 +70,6 @@
     </div>
 </div>
 
-<!-- Notification Toast -->
 <div id="notificationPopup" class="toast-notification" style="display:none;">
     <div class="toast-icon">&#128276;</div>
     <div>
