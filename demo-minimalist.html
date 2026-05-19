@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freight Forwarding Platform — Minimalist Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --border: #e5e5e5;
+            --text: #1a1a1a;
+            --text-secondary: #6b6b6b;
+            --text-tertiary: #9a9a9a;
+            --red: #e5484d;
+            --red-bg: #fef2f2;
+            --amber: #f59e0b;
+            --amber-bg: #fffbeb;
+            --blue: #3b82f6;
+            --blue-bg: #eff6ff;
+            --green: #22c55e;
+            --green-bg: #f0fdf4;
+            --purple: #8b5cf6;
+            --radius: 8px;
+            --radius-sm: 4px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+        
+        /* Layout */
+        .app { display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); padding: 20px 0; display: flex; flex-direction: column; }
+        .sidebar-logo { padding: 0 20px 20px; font-weight: 700; font-size: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 12px; color: var(--text); }
+        .sidebar-nav { list-style: none; padding: 0 12px; flex: 1; }
+        .sidebar-nav li { margin-bottom: 2px; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radius-sm); text-decoration: none; color: var(--text-secondary); font-size: 0.875rem; font-weight: 500; transition: 0.1s; }
+        .sidebar-nav a:hover { background: #f5f5f5; color: var(--text); }
+        .sidebar-nav a.active { background: #f0f0f0; color: var(--text); font-weight: 600; }
+        .sidebar-user { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-secondary); }
+        .sidebar-user .avatar { width: 28px; height: 28px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; color: var(--text); }
+        
+        .main { flex: 1; padding: 32px; overflow-y: auto; }
+        .page-header { margin-bottom: 28px; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+        .page-header p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Cards */
+        .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 32px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+        .stat-card .label { font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; }
+        .stat-card.red .value { color: var(--red); }
+        .stat-card.amber .value { color: var(--amber); }
+        .stat-card.blue .value { color: var(--blue); }
+        .stat-card.green .value { color: var(--green); }
+
+        /* Task List */
+        .section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .task-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .task-item { background: var(--surface); padding: 14px 18px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: 0.1s; }
+        .task-item:hover { background: #fafafa; }
+        .task-priority { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .task-priority.critical { background: var(--red); }
+        .task-priority.high { background: var(--amber); }
+        .task-priority.medium { background: var(--text-tertiary); }
+        .task-info { flex: 1; min-width: 0; }
+        .task-info .task-name { font-size: 0.9rem; font-weight: 500; margin-bottom: 2px; }
+        .task-info .task-meta { font-size: 0.8rem; color: var(--text-tertiary); }
+        .task-meta .overdue { color: var(--red); font-weight: 500; }
+        .task-status { font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+        .task-status.pending { background: var(--amber-bg); color: var(--amber); }
+        .task-status.done { background: var(--green-bg); color: var(--green); }
+
+        /* Table */
+        .data-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .data-table th { text-align: left; padding: 12px 16px; font-size: 0.75rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); background: #fafafa; }
+        .data-table td { padding: 12px 16px; font-size: 0.875rem; border-bottom: 1px solid var(--border); }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: #fafafa; }
+        .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; color: var(--text-secondary); }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+        .badge.active { background: var(--blue-bg); color: var(--blue); }
+        .badge.transit { background: var(--amber-bg); color: var(--amber); }
+        .badge.done { background: var(--green-bg); color: var(--green); }
+        .badge.hold { background: var(--red-bg); color: var(--red); }
+
+        /* Search */
+        .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-bar input { flex: 1; padding: 9px 14px; border: 1px solid var(--border); border-radius: var(--radius); font-family: inherit; font-size: 0.875rem; outline: none; }
+        .search-bar input:focus { border-color: #aaa; }
+        .btn { padding: 9px 18px; border-radius: var(--radius); font-family: inherit; font-size: 0.85rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: 0.1s; }
+        .btn:hover { background: #f5f5f5; }
+        .btn.primary { background: var(--text); color: #fff; border-color: var(--text); }
+        .btn.primary:hover { background: #333; }
+
+        /* Bento Grid for Manager */
+        .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 32px; }
+        .bento-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+        .bento-card.wide { grid-column: span 2; }
+        .bento-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; }
+        .mini-list { display: flex; flex-direction: column; gap: 8px; }
+        .mini-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .mini-item:last-child { border-bottom: none; }
+        .mini-item .name { font-weight: 500; }
+        .mini-item .count { font-size: 0.8rem; color: var(--text-secondary); }
+
+        /* No decoration */
+        .no-data { text-align: center; padding: 40px; color: var(--text-tertiary); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">SwiftCargo</div>
+            <ul class="sidebar-nav">
+                <li><a href="#" class="active" onclick="switchView('tasks')">Tasks</a></li>
+                <li><a href="#" onclick="switchView('shipments')">Shipments</a></li>
+                <li><a href="#" onclick="switchView('flights')">Flights</a></li>
+                <li><a href="#" onclick="switchView('rates')">Rates</a></li>
+                <li><a href="#" onclick="switchView('manager')">Team Overview</a></li>
+            </ul>
+            <div class="sidebar-user">
+                <div class="avatar">A</div>
+                <span>Ahmed Khan</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main" id="mainContent">
+            <!-- Content loads here -->
+        </main>
+    </div>
+
+    <script>
+        // Demo data
+        var tasks = [
+            { name: 'Send flight details to customer', shipment: 'AWB 176-5432-1099', deadline: 'Overdue — 2h ago', priority: 'critical', status: 'pending' },
+            { name: 'Verify shipment documents', shipment: 'AWB 176-5432-1101', deadline: 'Due in 45 minutes', priority: 'high', status: 'pending' },
+            { name: 'Update rate sheet for Emirates', shipment: '—', deadline: 'Due in 3 hours', priority: 'medium', status: 'pending' },
+            { name: 'Call Pakistan Customs for clearance', shipment: 'AWB 176-5432-1098', deadline: 'Due in 5 hours', priority: 'high', status: 'pending' },
+            { name: 'Send arrival notice to customer', shipment: 'AWB 176-5432-1100', deadline: 'Completed', priority: 'medium', status: 'done' },
+            { name: 'Arrange warehouse pickup', shipment: 'AWB 176-5432-1097', deadline: 'Completed', priority: 'medium', status: 'done' }
+        ];
+
+        var shipments = [
+            { awb: '176-5432-1098', customer: 'TexCo Industries', route: 'LHE → DXB', airline: 'EK612', weight: '450 kg', status: 'In Transit' },
+            { awb: '176-5432-1099', customer: 'Global Traders', route: 'KHI → DOH', airline: 'QR815', weight: '320 kg', status: 'Booked' },
+            { awb: '176-5432-1100', customer: 'PakTex Export', route: 'ISB → JED', airline: 'SV722', weight: '680 kg', status: 'Arrived' },
+            { awb: '176-5432-1101', customer: 'Metro Supplies', route: 'LHE → LHR', airline: 'BA132', weight: '210 kg', status: 'On Hold' },
+            { awb: '176-5432-1102', customer: 'Oceanic Shipping', route: 'KHI → IST', airline: 'TK203', weight: '890 kg', status: 'Delivered' }
+        ];
+
+        var rates = [
+            { airline: 'EK', route: 'LHE → DXB', rate: '$2.50/kg', cargo: 'General' },
+            { airline: 'QR', route: 'KHI → DOH', rate: '$2.20/kg', cargo: 'General' },
+            { airline: 'TK', route: 'ISB → IST', rate: '$2.80/kg', cargo: 'General' },
+            { airline: 'SV', route: 'ISB → JED', rate: '$2.40/kg', cargo: 'General' },
+            { airline: 'EK', route: 'LHE → DXB', rate: '$3.10/kg', cargo: 'Perishable' }
+        ];
+
+        function switchView(view) {
+            document.querySelectorAll('.sidebar-nav a').forEach(function(a) { a.classList.remove('active'); });
+            event.target.classList.add('active');
+            
+            var main = document.getElementById('mainContent');
+            
+            if (view === 'tasks') renderTasks(main);
+            if (view === 'shipments') renderShipments(main);
+            if (view === 'flights') renderFlights(main);
+            if (view === 'rates') renderRates(main);
+            if (view === 'manager') renderManager(main);
+        }
+
+        function renderTasks(main) {
+            main.innerHTML = 
+                '<div class="page-header"><h1>Tasks</h1><p>What needs your attention right now</p></div>' +
+                '<div class="stat-grid">' +
+                    '<div class="stat-card red"><div class="label">Overdue</div><div class="value">1</div></div>' +
+                    '<div class="stat-card amber"><div class="label">Due Today</div><div class="value">3</div></div>' +
+                    '<div class="stat-card blue"><div class="label">Upcoming</div><div class="value">2</div></div>' +
+                    '<div class="stat-card green"><div class="label">Completed</div><div class="value">2</div></div>' +
+                '</div>' +
+                '<div class="section-title">Pending Tasks</div>' +
+                '<div class="task-list">' +
+                    tasks.filter(function(t){return t.status==='pending';}).map(function(t){
+                        return '<div class="task-item">' +
+                            '<div class="task-priority ' + t.priority + '"></div>' +
+                            '<div class="task-info"><div class="task-name">' + t.name + '</div><div class="task-meta">' + t.shipment + ' · <span class="' + (t.deadline.includes('Overdue')?'overdue':'') + '">' + t.deadline + '</span></div></div>' +
+                            '<span class="task-status pending">Pending</span></div>';
+                    }).join('') +
+                '</div>' +
+                '<div class="section-title" style="margin-top:24px;">Completed</div>' +
+                '<div class="task-list">' +
+                    tasks.filter(function(t){return t.status==='done';}).map(function(t){
+                        return '<div class="task-item">' +
+                            '<div class="task-priority medium"></div>' +
+                            '<div class="task-info"><div class="task-name">' + t.name + '</div><div class="task-meta">' + t.shipment + ' · ' + t.deadline + '</div></div>' +
+                            '<span class="task-status done">Done</span></div>';
+                    }).join('') +
+                '</div>';
+        }
+
+        function renderShipments(main) {
+            main.innerHTML = 
+                '<div class="page-header"><h1>Shipments</h1><p>All shipments · 5 total</p></div>' +
+                '<div class="search-bar"><input type="text" placeholder="Search by AWB, customer, or airline..."><button class="btn primary">+ New Shipment</button></div>' +
+                '<table class="data-table">' +
+                    '<thead><tr><th>AWB</th><th>Customer</th><th>Route</th><th>Airline</th><th>Weight</th><th>Status</th></tr></thead>' +
+                    '<tbody>' + shipments.map(function(s){
+                        var badgeClass = s.status === 'In Transit' ? 'transit' : s.status === 'Delivered' ? 'done' : s.status === 'On Hold' ? 'hold' : 'active';
+                        return '<tr><td><span class="mono">' + s.awb + '</span></td><td>' + s.customer + '</td><td>' + s.route + '</td><td>' + s.airline + '</td><td>' + s.weight + '</td><td><span class="badge ' + badgeClass + '">' + s.status + '</span></td></tr>';
+                    }).join('') + '</tbody>' +
+                '</table>';
+        }
+
+        function renderFlights(main) {
+            main.innerHTML = 
+                '<div class="page-header"><h1>Flight Tracking</h1><p>Live status from AviationStack API</p></div>' +
+                '<div class="search-bar"><input type="text" placeholder="Search flight number..."><button class="btn primary">Search</button></div>' +
+                '<table class="data-table">' +
+                    '<thead><tr><th>Flight</th><th>Airline</th><th>Route</th><th>Status</th><th>Updated</th></tr></thead>' +
+                    '<tbody>' +
+                        '<tr><td><span class="mono">EK612</span></td><td>Emirates</td><td>LHE → DXB</td><td><span class="badge transit">In Flight</span></td><td>12 min ago</td></tr>' +
+                        '<tr><td><span class="mono">QR815</span></td><td>Qatar Airways</td><td>KHI → DOH</td><td><span class="badge active">Scheduled</span></td><td>45 min ago</td></tr>' +
+                        '<tr><td><span class="mono">TK203</span></td><td>Turkish Airlines</td><td>KHI → IST</td><td><span class="badge hold">Delayed</span></td><td>8 min ago</td></tr>' +
+                    '</tbody>' +
+                '</table>';
+        }
+
+        function renderRates(main) {
+            main.innerHTML = 
+                '<div class="page-header"><h1>Rate Database</h1><p>Airline rates per kg (USD)</p></div>' +
+                '<div class="search-bar"><input type="text" placeholder="Search by airline, route, or cargo type..."><button class="btn primary">+ Add Rate</button></div>' +
+                '<table class="data-table">' +
+                    '<thead><tr><th>Airline</th><th>Route</th><th>Cargo Type</th><th>Rate/kg</th></tr></thead>' +
+                    '<tbody>' + rates.map(function(r){
+                        return '<tr><td>' + r.airline + '</td><td>' + r.route + '</td><td>' + r.cargo + '</td><td><strong>' + r.rate + '</strong></td></tr>';
+                    }).join('') + '</tbody>' +
+                '</table>';
+        }
+
+        function renderManager(main) {
+            main.innerHTML = 
+                '<div class="page-header"><h1>Team Overview</h1><p>Monday, May 19</p></div>' +
+                '<div class="bento">' +
+                    '<div class="bento-card"><h3>Team Workload</h3><div class="mini-list">' +
+                        '<div class="mini-item"><span class="name">Ahmed Khan</span><span class="count">4 active tasks</span></div>' +
+                        '<div class="mini-item"><span class="name">Bilal Siddique</span><span class="count">2 active tasks</span></div>' +
+                        '<div class="mini-item"><span class="name">Danish Ali</span><span class="count">1 active tasks</span></div>' +
+                        '<div class="mini-item"><span class="name">Ehsan Ul Haq</span><span class="count">3 active tasks</span></div>' +
+                    '</div></div>' +
+                    '<div class="bento-card"><h3>Shipment Status</h3><div class="mini-list">' +
+                        '<div class="mini-item"><span class="name">In Transit</span><span class="count">1</span></div>' +
+                        '<div class="mini-item"><span class="name">Booked</span><span class="count">1</span></div>' +
+                        '<div class="mini-item"><span class="name">Arrived</span><span class="count">1</span></div>' +
+                        '<div class="mini-item"><span class="name">On Hold</span><span class="count">1</span></div>' +
+                    '</div></div>' +
+                    '<div class="bento-card"><h3>Overdue Tasks</h3><div class="mini-list">' +
+                        '<div class="mini-item"><span class="name">Send flight details</span><span style="color:var(--red);font-size:0.8rem;">2h overdue</span></div>' +
+                    '</div></div>' +
+                    '<div class="bento-card"><h3>This Week</h3><div class="mini-list">' +
+                        '<div class="mini-item"><span class="name">Shipments Processed</span><span class="count">12</span></div>' +
+                        '<div class="mini-item"><span class="name">Tasks Completed</span><span class="count">18</span></div>' +
+                        '<div class="mini-item"><span class="name">Flights Tracked</span><span class="count">5</span></div>' +
+                    '</div></div>' +
+                '</div>';
+        }
+
+        // Load tasks by default
+        renderTasks(document.getElementById('mainContent'));
+    </script>
+</body>
+</html>
